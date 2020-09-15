@@ -13,7 +13,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintWidth_percent="0.12"
+        app:layout_constraintWidth_percent="0.14"
         app:layout_constraintDimensionRatio="1:1"/>
 
     <ImageView
@@ -26,7 +26,7 @@
         app:layout_constraintLeft_toRightOf="@+id/btn_title_back"
         app:layout_constraintRight_toLeftOf="@id/btn_title_right"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintWidth_percent="0.12"
+        app:layout_constraintWidth_percent="0.14"
         app:layout_constraintDimensionRatio="192:122"/>
 
     <Button
@@ -38,7 +38,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintWidth_percent="0.12"
+        app:layout_constraintWidth_percent="0.14"
         app:layout_constraintDimensionRatio="1:1"/>
 
 

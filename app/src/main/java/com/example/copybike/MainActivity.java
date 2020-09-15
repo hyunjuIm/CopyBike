@@ -17,10 +17,20 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
 import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.copybike.common.NaverMapHelper;
+import com.example.copybike.data.Station;
+import com.google.gson.Gson;
 import com.naver.maps.geometry.LatLng;
 import com.naver.maps.geometry.LatLngBounds;
 import com.naver.maps.map.CameraPosition;
@@ -36,18 +46,31 @@ import com.naver.maps.map.overlay.Marker;
 import com.naver.maps.map.util.FusedLocationSource;
 import com.pedro.library.AutoPermissions;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Vector;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     Button btn_current_location;
+    TextView tv_last_notice;
 
     final static String TAG = "HYUNJU";
 
     private MapFragment mMapFragment;
 
     static RequestQueue requestQueue;
+
+    // 최근 공지사항 번호
+    private String lastNoticeSeq = null;
+
+    private ArrayList<Station> stationList = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,12 +80,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         AutoPermissions.Companion.loadAllPermissions(this, 101);
 
         btn_current_location = findViewById(R.id.btn_current_location);
+        tv_last_notice = findViewById(R.id.tv_last_notice);
 
         if(requestQueue ==null){
             requestQueue = Volley.newRequestQueue(getApplicationContext());
         }
 
         initMap();
+        makeRequest();
 
         btn_current_location.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -127,6 +152,41 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void makeRequest(){
-        
+        // URL 설정
+        Request<JSONObject> request = null;
+        String requestUrl = "http://1.245.175.54:8080/v1/station/list/extra";
+
+        request = new JsonObjectRequest(Request.Method.GET, requestUrl, null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+                            // 최근 공지사항 가져오기
+                            JSONObject notice = response.getJSONObject("notice");
+                            if (notice != null) {
+//                                tv_last_notice.setText(notice.optString("title"));
+//                                tv_last_notice.setText("--------------------------");
+                                lastNoticeSeq = notice.optString("notice_seq");
+                            } else {
+//                                tv_last_notice.setText("공지사항이 없습니다.");
+                                lastNoticeSeq = null;
+                            }
+
+                            //대여소정보 가져오기
+                            stationList = NaverMapHelper.getStationInfo(response.getJSONArray("bike_station"));
+                            Log.e(TAG, "대여소 주소 : " + stationList.get(0).getMainAddress());
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.d(TAG, "대여소 데이터 가져오기 실패");
+            }
+        });
+        request.setShouldCache(false);
+        requestQueue.add(request);
     }
 }

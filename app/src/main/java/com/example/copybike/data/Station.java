@@ -1,131 +1,111 @@
 package com.example.copybike.data;
 
+import com.naver.maps.map.overlay.Marker;
+
 public class Station {
-    private String station_no;
-    private String station_id;
-    private String station_name;
-    private String zipcode;
-    private String gu;
-    private String dong;
-    private String addr;
-    private String x_pos;
-    private String y_pos;
-    private String area;
-    private String geofence_distance;
-    private String bike_parking;
 
-    public Station() {
+    private int img                     = -1;       // 마커 이미지
+    private String mainAddress 			= null;		// 주소1
+    private String subAddress 			= null;		// 주소2
+    private int lockerOnCount 			= -1;		// 자전거 대여 가능 수
+    private int lockerOffCount 			= -1;		// 자전거 대여 불가능 수
+    private int lockerTotalCount 		= -1;		// 총 자전거 수
+    private String stationId 			= null;		// 스테이션 ID
+    private String stationName 			= null;		// 스테이션 명
+    private String stationNumber 		= null;		// 스테이션 번호
+    private double lockerOffPercent 	= -1.0;		// 자전거 대여 가능 점유율
+    private double lockerOnPercent 		= -1.0;		// 자전거 대여 불가능 점유율
+    private Double x 					= null;		// 스테이션 위치 x
+    private Double y 					= null;		// 스테이션 위치 y
+    private String kioskState 			= null;		// 키오스크 상태
+
+    private Marker marker				= null;		// 네이버지도 v3 마커
+
+    // 마커 이미지
+    public int getImg() {
+        return img;
+    }
+    public void setImg(int img) {
+        this.img = img;
     }
 
-    public Station(String station_no, String station_id, String station_name, String zipcode, String gu, String dong, String addr, String x_pos, String y_pos, String area, String geofence_distance, String bike_parking) {
-        this.station_no = station_no;
-        this.station_id = station_id;
-        this.station_name = station_name;
-        this.zipcode = zipcode;
-        this.gu = gu;
-        this.dong = dong;
-        this.addr = addr;
-        this.x_pos = x_pos;
-        this.y_pos = y_pos;
-        this.area = area;
-        this.geofence_distance = geofence_distance;
-        this.bike_parking = bike_parking;
+    // mainAddress
+    public String getMainAddress() { return mainAddress; }
+    public void setMainAddress(String mainAddress) { this.mainAddress = mainAddress; }
+
+    // subAddress
+    public String getSubAddress() { return subAddress; }
+    public void setSubAddress(String subAddress) { this.subAddress = subAddress; }
+
+    // countLockerOn
+    public int getLockerOnCount() { return lockerOnCount; }
+    public void setCountLockerOn(int count) { this.lockerOnCount = count; }
+
+    // countLockerOff
+    public int getLockerOffCount() { return lockerOffCount; }
+    public void setCountLockerOff(int count) { this.lockerOffCount = count; }
+
+    // countLockerTotal
+    public int getLockerTotalCount() { return lockerTotalCount; }
+    public void setLockerTotalCount(int count) {
+        this.lockerTotalCount = count;
     }
 
-    public String getStation_no() {
-        return station_no;
+    // IP getter, setter
+    // public String getIP() { return IP; }
+    // public void setIP(String IP) { this.IP = IP; }
+
+    // stationId getter, setter
+    public String getStationId() { return stationId; }
+    public void setStationId(String stationId) { this.stationId = stationId; }
+
+    // stationName
+    public String getStationName() { return stationName; }
+    public void setStationName(String stationName) { this.stationName = stationName; }
+
+    // stationNumber
+    public String getStationNumber() { return stationNumber; }
+    public void setStationNumber(String stationNumber) {
+        this.stationNumber = stationNumber;
     }
 
-    public void setStation_no(String station_no) {
-        this.station_no = station_no;
+    // percentLockerOff
+    public double getLockerOffPercent() { return lockerOffPercent; }
+    public void setLockerOffPercent(double percent) {
+        this.lockerOffPercent = percent;
     }
 
-    public String getStation_id() {
-        return station_id;
+    // percentLockerOn
+    public double getLockerOnPercent() { return lockerOnPercent; }
+    public void setLockerOnPercent(double percent) {
+        this.lockerOnPercent = percent;
     }
 
-    public void setStation_id(String station_id) {
-        this.station_id = station_id;
+    // x getter, setter
+    public Double getX() { return x; }
+    public void setX(Double x) {
+        this.x = x;
     }
 
-    public String getStation_name() {
-        return station_name;
+    // y getter, setter
+    public Double getY() { return y; }
+    public void setY(Double y) {
+        this.y = y;
     }
 
-    public void setStation_name(String station_name) {
-        this.station_name = station_name;
+    // kioskState
+    public String getKioskState() { return kioskState; }
+    public void setKioskState(String kioskState) {
+        this.kioskState = kioskState;
     }
 
-    public String getZipcode() {
-        return zipcode;
+    // Marker
+    public Marker getMarker() {
+        return marker;
     }
 
-    public void setZipcode(String zipcode) {
-        this.zipcode = zipcode;
-    }
-
-    public String getGu() {
-        return gu;
-    }
-
-    public void setGu(String gu) {
-        this.gu = gu;
-    }
-
-    public String getDong() {
-        return dong;
-    }
-
-    public void setDong(String dong) {
-        this.dong = dong;
-    }
-
-    public String getAddr() {
-        return addr;
-    }
-
-    public void setAddr(String addr) {
-        this.addr = addr;
-    }
-
-    public String getX_pos() {
-        return x_pos;
-    }
-
-    public void setX_pos(String x_pos) {
-        this.x_pos = x_pos;
-    }
-
-    public String getY_pos() {
-        return y_pos;
-    }
-
-    public void setY_pos(String y_pos) {
-        this.y_pos = y_pos;
-    }
-
-    public String getArea() {
-        return area;
-    }
-
-    public void setArea(String area) {
-        this.area = area;
-    }
-
-    public String getGeofence_distance() {
-        return geofence_distance;
-    }
-
-    public void setGeofence_distance(String geofence_distance) {
-        this.geofence_distance = geofence_distance;
-    }
-
-    public String getBike_parking() {
-        return bike_parking;
-    }
-
-    public void setBike_parking(String bike_parking) {
-        this.bike_parking = bike_parking;
+    public void setMarker(Marker marker) {
+        this.marker = marker;
     }
 
 }

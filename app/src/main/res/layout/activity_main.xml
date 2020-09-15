@@ -43,10 +43,12 @@
             android:layout_marginTop="7dp"
             android:layout_marginBottom="7dp"
             android:layout_marginRight="10dp"
+            android:gravity="left"
+            android:text="공지사항"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintWidth_percent="0.9"/>
+            app:layout_constraintWidth_percent="0.85"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
