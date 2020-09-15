@@ -1,5 +1,7 @@
 package com.example.copybike.common;
 
+import com.example.copybike.data.AirInjector;
+import com.example.copybike.data.SbikeStation;
 import com.example.copybike.data.Station;
 
 import org.json.JSONArray;
@@ -47,7 +49,6 @@ public class NaverMapHelper {
         }
     }
 
-    /*
     public static ArrayList<SbikeStation> getSbikeStationInfo(JSONArray results) {
         try {
             ArrayList<SbikeStation> stationList = new ArrayList<SbikeStation>();
@@ -101,6 +102,4 @@ public class NaverMapHelper {
             return null;
         }
     }
-
-     */
 }

@@ -29,6 +29,8 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.copybike.common.NaverMapHelper;
+import com.example.copybike.data.AirInjector;
+import com.example.copybike.data.SbikeStation;
 import com.example.copybike.data.Station;
 import com.google.gson.Gson;
 import com.naver.maps.geometry.LatLng;
@@ -70,7 +72,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     // 최근 공지사항 번호
     private String lastNoticeSeq = null;
 
+    //Volley
     private ArrayList<Station> stationList = null;
+    private ArrayList<SbikeStation> sbikeStationList = null;
+    private ArrayList<AirInjector> airInjectorList = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -173,7 +178,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                             //대여소정보 가져오기
                             stationList = NaverMapHelper.getStationInfo(response.getJSONArray("bike_station"));
-                            Log.e(TAG, "대여소 주소 : " + stationList.get(0).getMainAddress());
+                            Log.e(TAG, "대여소 주소 : " + stationList.get(0).getStationName());
+
+                            // 공유 대여소정보 가져오기
+                            sbikeStationList = NaverMapHelper.getSbikeStationInfo(response.getJSONArray("sbike_station"));
+                            Log.e(TAG, "대여소 주소 : " + sbikeStationList.get(0).getStationName());
+
+                            // 공기 주입구 정보 가져오기
+//                            airInjectorList = NaverMapHelper.getAirInjectorInfo(response.getJSONArray("injector"));
+//                            Log.e(TAG, "대여소 주소 : " + airInjectorList.get(0).getAddr());
 
                         } catch (JSONException e) {
                             e.printStackTrace();
