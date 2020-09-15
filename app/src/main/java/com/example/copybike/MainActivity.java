@@ -164,11 +164,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             // 최근 공지사항 가져오기
                             JSONObject notice = response.getJSONObject("notice");
                             if (notice != null) {
-//                                tv_last_notice.setText(notice.optString("title"));
-//                                tv_last_notice.setText("--------------------------");
+                                tv_last_notice.setText(notice.optString("title"));
                                 lastNoticeSeq = notice.optString("notice_seq");
                             } else {
-//                                tv_last_notice.setText("공지사항이 없습니다.");
+                                tv_last_notice.setText("공지사항이 없습니다.");
                                 lastNoticeSeq = null;
                             }
 
