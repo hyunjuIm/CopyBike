@@ -2,88 +2,112 @@ package com.example.copybike;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentManager;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.PointF;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.copybike.common.NaverMapHelper;
-import com.example.copybike.data.AirInjector;
 import com.example.copybike.data.SbikeStation;
 import com.example.copybike.data.Station;
-import com.google.gson.Gson;
+import com.example.copybike.util.StationTypeDialog;
 import com.naver.maps.geometry.LatLng;
 import com.naver.maps.geometry.LatLngBounds;
+import com.naver.maps.map.CameraAnimation;
 import com.naver.maps.map.CameraPosition;
 import com.naver.maps.map.CameraUpdate;
 import com.naver.maps.map.LocationTrackingMode;
 import com.naver.maps.map.MapFragment;
 import com.naver.maps.map.NaverMap;
-import com.naver.maps.map.NaverMapOptions;
 import com.naver.maps.map.OnMapReadyCallback;
 import com.naver.maps.map.Pickable;
 import com.naver.maps.map.overlay.InfoWindow;
 import com.naver.maps.map.overlay.Marker;
+import com.naver.maps.map.overlay.Overlay;
+import com.naver.maps.map.overlay.OverlayImage;
 import com.naver.maps.map.util.FusedLocationSource;
 import com.pedro.library.AutoPermissions;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Vector;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
-    Button btn_current_location;
-    TextView tv_last_notice;
+    private static MainActivity instance;
+
+    ImageButton btn_station_type; //스테이션 버튼
+    Button btn_current_location; //내 위치 버튼
+    TextView tv_last_notice; //공지 텍스트뷰
 
     final static String TAG = "HYUNJU";
 
-    private MapFragment mMapFragment;
-
-    static RequestQueue requestQueue;
-
-    // 최근 공지사항 번호
+    //최근 공지사항 번호
     private String lastNoticeSeq = null;
 
     //Volley
+    static RequestQueue requestQueue;
     private ArrayList<Station> stationList = null;
     private ArrayList<SbikeStation> sbikeStationList = null;
-    private ArrayList<AirInjector> airInjectorList = null;
+
+    //지도
+    private NaverMap mNaverMap;
+    private MapFragment mMapFragment;
+    private InfoWindow mCurrentWindow; //지도 위에 올리는 정보창
+
+    //마커 출력 분류
+    public StationTypeDialog stationTypeDialog;
+    private static final int STATION_ALL = 0;
+    private static final int STATION_ONLY_BIKE = 1;
+    private static final int STATION_ONLY_SBIKE = 2;
+    private int markerStationType = STATION_ALL;
+
+    //내 위치
+    private LocationManager locationManager;
+    private boolean isOnlyMyLocation = false;
+    private boolean isZoomSetting = true;
+    private boolean isLocationUsing = true;
+
+    private boolean isMapinitialized;
+    private boolean trackOnce;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        instance = this;
 
         AutoPermissions.Companion.loadAllPermissions(this, 101);
 
+        btn_station_type = findViewById(R.id.btn_station_type);
         btn_current_location = findViewById(R.id.btn_current_location);
         tv_last_notice = findViewById(R.id.tv_last_notice);
 
@@ -92,14 +116,95 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         initMap();
-        makeRequest();
+        initView();
+    }
 
+    private void initView(){
+        //스테이션 분류 팝업
+        btn_station_type.setOnClickListener(new View.OnClickListener() {
+           @Override
+           public void onClick(View v) {
+                stationTypeDialog = new StationTypeDialog(instance, markerStationType, stationAllBtnListener, stationBikeBtnListener, stationSbikeBtnListener);
+                stationTypeDialog.show();
+            }
+        });
+
+        //내 위치 정보
         btn_current_location.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startLocationService();
+                // 내 위치기능 사용중이라면
+                if (isOnlyMyLocation) {
+                    // 중지
+                    isLocationUsing = false;
+                    myLocationStop();
+                } else { // 아니면
+                    // 시작
+                    myLocationStart();
+                }
             }
         });
+    }
+
+    //전체
+    Button.OnClickListener stationAllBtnListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            markerStationType = STATION_ALL;
+            setStationTypeMarkers();
+        }
+    };
+    //어울링 선택
+    Button.OnClickListener stationBikeBtnListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            markerStationType = STATION_ONLY_BIKE;
+            setStationTypeMarkers();
+        }
+    };
+    //뉴어울링 선택
+    Button.OnClickListener stationSbikeBtnListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            markerStationType = STATION_ONLY_SBIKE;
+            setStationTypeMarkers();
+        }
+    };
+
+    private void setStationTypeMarkers() {
+        if (stationTypeDialog != null) {
+            stationTypeDialog.dismiss();
+        }
+
+        clearAllMarker();
+        getMarkerItems();
+    }
+
+    private void clearAllMarker() {
+        if (stationList != null) {
+            for (Station station : stationList) {
+                if (station != null) {
+                    if (station.getMarker() != null) {
+                        station.getMarker().setMap(null);
+                    }
+                }
+            }
+        }
+
+        if (sbikeStationList != null) {
+            for (SbikeStation station : sbikeStationList) {
+                if (station != null) {
+                    if (station.getMarker() != null) {
+                        station.getMarker().setMap(null);
+                    }
+                }
+            }
+        }
+
+        if (mCurrentWindow != null) {
+            mCurrentWindow.close();
+        }
+
     }
 
     //맵 초기화
@@ -117,45 +222,120 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onMapReady(@NonNull NaverMap naverMap) {
+        mNaverMap = naverMap;
+
         // 카메라 초기 위치 설정
         LatLng initialPosition = new LatLng(36.502812, 127.256329);
-        CameraUpdate cameraUpdate = CameraUpdate.scrollTo(initialPosition);
-        naverMap.moveCamera(cameraUpdate);
+
+        naverMap.addOnLocationChangeListener(mLocationChangeListener);
+        naverMap.setOnMapClickListener(mMapClickListener);
+        naverMap.setLocationSource(new FusedLocationSource(this, 1));
+        naverMap.getUiSettings().setZoomControlEnabled(false);
+        naverMap.getUiSettings().setCompassEnabled(false);
+        naverMap.getUiSettings().setScaleBarEnabled(false);
+        naverMap.getUiSettings().setLogoMargin(10, 0, 0, 10);
+        naverMap.getUiSettings().setRotateGesturesEnabled(false);
+        naverMap.setExtent(new LatLngBounds(
+                new LatLng(30.664915, 122.628502), new LatLng(39.788312, 132.893671)));
+        naverMap.setLiteModeEnabled(true);
+        naverMap.setLocationTrackingMode(LocationTrackingMode.None);
+        naverMap.setCameraPosition(new CameraPosition(initialPosition, 13));
+
+        requestLocationUpdates();
+        getExternalData();
     }
 
-    @SuppressLint("MissingPermission")
-    public void startLocationService() {
-        LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        try {
-            //이전에 확인했던 위치정보 가져오기
-            Location location = manager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            if(location != null){
-                double latitude = location.getLatitude();
-                double longitude = location.getLongitude();
+    //외부데이터 가져오기
+    private void getExternalData() {
+        clearAllMarker();
+        makeRequest();
+    }
+
+    //내 위치 찾기
+    private void myLocationStart(){
+        // LocationManager 생성
+        if (null == locationManager) {
+            locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        }
+        // 내위치 아이콘 변경 (Selected)
+        btn_current_location.setBackgroundResource(R.drawable.gps_icon_selected);
+        isOnlyMyLocation = true;
+        isLocationUsing = true;
+
+        // 위치요청
+        requestLocationUpdates();
+    }
+
+    //내 위치 탐색
+    private void requestLocationUpdates() {
+        if (mNaverMap != null) {
+            trackOnce = true;
+            mNaverMap.setLocationTrackingMode(LocationTrackingMode.NoFollow);
+        }
+    }
+
+    // 내 위치찾기 종료
+    private void myLocationStop() {
+
+        // 내위치 버튼 변경 (Default)
+        btn_current_location.setBackgroundResource(R.drawable.btn_myposition_selector);
+        isOnlyMyLocation = false;
+
+        // 내위치 탐색 기능 종료
+        requestLocationRemoveUpdates();
+    }
+
+    // 내위치 탐색 기능 종료
+    private void requestLocationRemoveUpdates() {
+        if (mNaverMap != null) {
+            if (!isLocationUsing) {
+                mNaverMap.setCameraPosition(new CameraPosition(
+                        new LatLng(36.502812, 127.256329), 13));
+            }
+            mNaverMap.setLocationTrackingMode(LocationTrackingMode.None);
+        }
+    }
+
+    private final NaverMap.OnLocationChangeListener mLocationChangeListener = new NaverMap.OnLocationChangeListener() {
+        @Override
+        public void onLocationChange(@NonNull Location location) {
+            if (!isZoomSetting) {
+                isZoomSetting = true;
+                // 지도 zoom레벨 설정
+                LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                mNaverMap.setCameraPosition(new CameraPosition(latLng, 13));
             }
 
-            GPSListener gpsListener = new GPSListener();
-            long minTime = 10000;
-            float minDistance = 0;
-
-            //위치 요청
-            manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, minTime, minDistance, gpsListener);
-
-        } catch (Exception e) {
-            e.printStackTrace();
+            if (trackOnce) {
+                trackOnce = false;
+                mNaverMap.setCameraPosition(new CameraPosition(
+                        new LatLng(location.getLatitude(), location.getLongitude()), 17));
+            }
         }
-    }
+    };
 
-    //위치 관리자에서 전달하는 위치정보를 받기 위해 정의된 인터페이스
-    class GPSListener implements LocationListener{
-        //위치가 확인 되었을 때 자동으로 호출
-        public void onLocationChanged(Location location){
-            Double latitude = location.getLatitude();
-            Double longitude = location.getLongitude();
-            Log.e(TAG, "내 위치 : "+ latitude + ", " + longitude);
+    private final NaverMap.OnMapClickListener mMapClickListener = new NaverMap.OnMapClickListener() {
+        @Override
+        public void onMapClick(@NonNull PointF pointF, @NonNull LatLng latLng) {
+            int radius = 1;
+            List<Pickable> pickableList = mNaverMap.pickAll(pointF, radius);
+            ArrayList<Marker> markers = new ArrayList<>();
+
+            for (Pickable pickable : pickableList) {
+                if (pickable instanceof Marker) {
+                    markers.add(((Marker) pickable));
+                }
+            }
+
+            if (markers.size() <= 0) {
+                if (mCurrentWindow != null) {
+                    mCurrentWindow.close();
+                }
+            }
         }
-    }
+    };
 
+    //volley로 대여소 정보 받아오기
     public void makeRequest(){
         // URL 설정
         Request<JSONObject> request = null;
@@ -180,14 +360,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             stationList = NaverMapHelper.getStationInfo(response.getJSONArray("bike_station"));
                             Log.e(TAG, "대여소 주소 : " + stationList.get(0).getStationName());
 
-                            // 공유 대여소정보 가져오기
+                            //공유 대여소정보 가져오기
                             sbikeStationList = NaverMapHelper.getSbikeStationInfo(response.getJSONArray("sbike_station"));
                             Log.e(TAG, "대여소 주소 : " + sbikeStationList.get(0).getStationName());
 
-                            // 공기 주입구 정보 가져오기
-//                            airInjectorList = NaverMapHelper.getAirInjectorInfo(response.getJSONArray("injector"));
-//                            Log.e(TAG, "대여소 주소 : " + airInjectorList.get(0).getAddr());
-
+                            //마커출력
+                            getMarkerItems();
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -200,5 +378,164 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
         request.setShouldCache(false);
         requestQueue.add(request);
+    }
+
+    //마커 셋팅
+    private void getMarkerItems() {
+        // 마커 내부 Context 정의
+        // LayoutInflater : 레이아웃 XML 파일을 해당 View 객체 로 인스턴스화
+        View rootMarker = LayoutInflater.from(this).inflate(R.layout.item_marker, null);
+        LinearLayout iv = (LinearLayout) rootMarker.findViewById(R.id.iv_marker);
+        TextView textMarker = (TextView) rootMarker.findViewById(R.id.tv_marker);
+
+        if (stationList != null && sbikeStationList != null) {
+            if (stationList.size() > 0 || sbikeStationList.size() > 0) {
+                // 공공 대여소
+                if (markerStationType == STATION_ALL || markerStationType == STATION_ONLY_BIKE) {
+                    for (int i=0; i<stationList.size(); i++) {
+                        addMarker(instance, stationList.get(i), rootMarker, iv, textMarker);
+                    }
+                }
+
+                // 공유 대여소
+                if (markerStationType == STATION_ALL || markerStationType == STATION_ONLY_SBIKE) {
+                    for (int i=0; i<sbikeStationList.size(); i++) {
+                        addSbikeMarker(instance, sbikeStationList.get(i), rootMarker, iv, textMarker);
+                    }
+                }
+            }
+        }
+    }
+
+    //공공 대여소 마커 추가
+    public Marker addMarker(Context context, Station markerItem, View rootMarker, LinearLayout iv, TextView textMarker) {
+
+        // 마커 위치
+        double x = markerItem.getX();
+        double y = markerItem.getY();
+
+        // 대여소 번호
+        textMarker.setText(String.valueOf(markerItem.getLockerOnCount()));
+
+        // 마커 이미지
+        double per = markerItem.getLockerOffPercent();
+        String kioskState = markerItem.getKioskState();
+
+        //개발 서버는 키오스크 에러로 출력돼서 전부 장애 아이콘으로 뜸
+        if (per <= 0.0)         iv.setBackgroundResource(R.drawable.station_00);
+        else if (per < 20)      iv.setBackgroundResource(R.drawable.station_01);
+        else if (per < 30)      iv.setBackgroundResource(R.drawable.station_01);
+        else if (per < 40)      iv.setBackgroundResource(R.drawable.station_02);
+        else if (per < 50)      iv.setBackgroundResource(R.drawable.station_02);
+        else if (per < 60)      iv.setBackgroundResource(R.drawable.station_03);
+        else if (per < 70)      iv.setBackgroundResource(R.drawable.station_03);
+        else if (per < 80)      iv.setBackgroundResource(R.drawable.station_04);
+        else if (per < 90)      iv.setBackgroundResource(R.drawable.station_04);
+        else if (per < 100)     iv.setBackgroundResource(R.drawable.station_05);
+        else if (per == 100)    iv.setBackgroundResource(R.drawable.station_05);
+        else                    iv.setBackgroundResource(R.drawable.station_05);
+
+        // 장애일 시 아이콘 변경
+        if (kioskState != null) {
+            if (!kioskState.equals("00")) {
+                iv.setBackgroundResource(R.drawable.station_error);
+            }
+        }
+
+        // 정보창 텍스트
+        final String infoText = markerItem.getStationNumber() + ". " +
+                markerItem.getStationName() + "\r\n 대여가능 자전거 : " + " " +
+                markerItem.getLockerOnCount()  + " / " + markerItem.getLockerTotalCount();
+
+        final InfoWindow infoWindow = new InfoWindow();
+        infoWindow.setAdapter(new InfoWindow.ViewAdapter() {
+            @NonNull
+            @Override
+            public View getView(@NonNull InfoWindow infoWindow) {
+                return getInfoWindow(infoText);
+            }
+        });
+
+
+        final LatLng position = new LatLng(y, x);
+        Marker marker = new Marker();
+        marker.setPosition(position);
+        marker.setMap(mNaverMap);
+        marker.setIcon(OverlayImage.fromView(rootMarker));
+        marker.setOnClickListener(new Overlay.OnClickListener() {
+            @Override
+            public boolean onClick(@NonNull Overlay overlay) {
+                if (mCurrentWindow != null) {
+                    mCurrentWindow.close();
+                }
+                mCurrentWindow = infoWindow;
+                infoWindow.open((Marker)overlay);
+                mNaverMap.moveCamera(CameraUpdate.scrollTo(position).animate(CameraAnimation.Easing, 200));
+                return false;
+            }
+        });
+
+        markerItem.setMarker(marker);
+        return null;
+    }
+
+    //공유 대여소 마커 추가
+    public Marker addSbikeMarker(Context context, SbikeStation markerItem, View rootMarker, LinearLayout iv, TextView textMarker) {
+        // 마커 위치
+        double x = markerItem.getX();
+        double y = markerItem.getY();
+
+        // 대여소 번호
+        textMarker.setText(markerItem.getBikeParking());
+
+        // 마커 이미지
+        iv.setBackgroundResource(R.drawable.station_share);
+
+        // 정보창 텍스트
+        final String infoText = markerItem.getStationNumber() + ". " +
+                markerItem.getStationName() + "\r\n 대여가능 자전거 : " +
+                markerItem.getBikeParking();
+
+        final InfoWindow infoWindow = new InfoWindow();
+        infoWindow.setAdapter(new InfoWindow.ViewAdapter() {
+            @NonNull
+            @Override
+            public View getView(@NonNull InfoWindow infoWindow) {
+                return getInfoWindow(infoText);
+            }
+        });
+
+        final LatLng position = new LatLng(y, x);
+        Marker marker = new Marker();
+        marker.setPosition(position);
+        marker.setMap(mNaverMap);
+        marker.setIcon(OverlayImage.fromView(rootMarker));
+        marker.setOnClickListener(new Overlay.OnClickListener() {
+            @Override
+            public boolean onClick(@NonNull Overlay overlay) {
+                if (mCurrentWindow != null) {
+                    mCurrentWindow.close();
+                }
+                mCurrentWindow = infoWindow;
+                infoWindow.open((Marker)overlay);
+                mNaverMap.moveCamera(CameraUpdate.scrollTo(position).animate(CameraAnimation.Easing, 200));
+                return false;
+            }
+        });
+
+        markerItem.setMarker(marker);
+
+
+        return null;
+    }
+
+    //정보창 setText
+    private View getInfoWindow(String text) {
+        View calloutParent = LayoutInflater.from(this).inflate(R.layout.callout_overlay_view, null);
+        LinearLayout calloutView = calloutParent.findViewById(R.id.callout_overlay);
+        TextView calloutText = calloutParent.findViewById(R.id.callout_text);
+        calloutText.setText(text);
+
+        return calloutParent;
     }
 }

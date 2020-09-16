@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="200dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/ll_station_all"
+        android:layout_width="match_parent"
+        android:layout_height="61dp"
+        android:background="@drawable/btn_color_selector"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_all"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="전체"
+            android:textColor="@color/contents_text"
+            android:textSize="16dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/line_color_normal"
+        android:orientation="vertical" />
+
+    <LinearLayout
+        android:id="@+id/ll_station_bike"
+        android:layout_width="match_parent"
+        android:layout_height="61dp"
+        android:background="@drawable/btn_color_selector"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_bike"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="어울링"
+            android:textColor="@color/contents_text"
+            android:textSize="16dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/line_color_normal"
+        android:orientation="vertical" />
+
+    <LinearLayout
+        android:id="@+id/ll_station_sbike"
+        android:layout_width="match_parent"
+        android:layout_height="61dp"
+        android:background="@drawable/btn_color_selector"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_sbike"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="뉴어울링"
+            android:textColor="@color/contents_text"
+            android:textSize="16dp" />
+    </LinearLayout>
+
+</LinearLayout>
