@@ -27,7 +27,7 @@ public class StationTypeDialog extends Dialog {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.popup_station_type2);
+        setContentView(R.layout.popup_station_type);
 
         findViewById(R.id.ll_station_all).setOnClickListener(stationAllBtnListener);
         findViewById(R.id.ll_station_bike).setOnClickListener(stationBikeBtnListener);
