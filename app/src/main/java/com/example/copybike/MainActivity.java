@@ -214,6 +214,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 thread.start();
             }
         });
+
+        //이용권 구매
+        findViewById(R.id.ll_btn_payment).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, PayActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
     //전체
@@ -669,7 +678,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder service) {
-            Log.e(TAG, "들어옴");
             mBluetoothLeService = ((BluetoothLeService.LocalBinder) service).getService();
             if (!mBluetoothLeService.initialize()) {
                 Log.e(TAG, "Unable to initialize Bluetooth");
@@ -680,7 +688,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
-            Log.e(TAG, "들어옴");
             mBluetoothLeService = null;
         }
     };
