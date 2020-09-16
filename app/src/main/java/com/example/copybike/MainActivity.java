@@ -8,15 +8,27 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
+import android.bluetooth.BluetoothManager;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.PointF;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.IBinder;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -57,7 +69,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -69,11 +83,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     final static String TAG = "HYUNJU";
 
-    //최근 공지사항 번호
-    private String lastNoticeSeq = null;
-
     //Volley
     static RequestQueue requestQueue;
+    private String lastNoticeSeq = null; //최근 공지사항 번호
     private ArrayList<Station> stationList = null;
     private ArrayList<SbikeStation> sbikeStationList = null;
 
@@ -94,10 +106,32 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private boolean isOnlyMyLocation = false;
     private boolean isZoomSetting = true;
     private boolean isLocationUsing = true;
-
     private boolean isMapinitialized;
     private boolean trackOnce;
 
+    //BLE 통신
+    private BluetoothAdapter mBluetoothAdapter;
+    private boolean mScanning;
+    private Handler mHandler;
+    private boolean mConnected = false;
+    private BluetoothGatt mBluetoothGatt;
+    private BluetoothGattCharacteristic mNotifyCharacteristic;
+
+    private ArrayList<BluetoothDevice> mLeDevices = new ArrayList<BluetoothDevice>();
+    private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics = new ArrayList<ArrayList<BluetoothGattCharacteristic>>();
+
+    private BluetoothLeService mBluetoothLeService;
+
+    public final static int REQUEST_ENABLE_BT = 1;
+    private static final long SCAN_PERIOD = 5000;
+
+    private final String LIST_NAME = "NAME";
+    private final String LIST_UUID = "UUID";
+
+    UUID[] uuid = new UUID[1];
+    public final static String MAC_ADDRESS = "D4:7C:44:40:09:5F";
+
+    Intent gattServiceIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,12 +145,34 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         btn_current_location = findViewById(R.id.btn_current_location);
         tv_last_notice = findViewById(R.id.tv_last_notice);
 
+        mHandler = new Handler();
+
         if(requestQueue ==null){
             requestQueue = Volley.newRequestQueue(getApplicationContext());
         }
 
+        uuid[0] = UUID.fromString("F000C0E0-0451-4000-B000-000000000000");
+
+        gattServiceIntent = new Intent(this, BluetoothLeService.class);
+
+        //전달하는 파라미터에 따라서 원하는 클래스형으로 형변환을 해야 한다는 것을 의미
+        //파라미터로 전달되는 name값에 따라서 시스템 레벨의 서비스를 제어할 수 있는 핸들을 리턴
+        final BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+        mBluetoothAdapter = bluetoothManager.getAdapter();
+
         initMap();
         initView();
+    }
+
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+
+        registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
+        if (mBluetoothLeService != null) {
+            final boolean result = mBluetoothLeService.connect(MAC_ADDRESS);
+            Log.e(TAG, "Connect request result = " + result);
+        }
     }
 
     private void initView(){
@@ -133,17 +189,42 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         btn_current_location.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // 내 위치기능 사용중이라면
+                // 내 위치 기능 사용중인지 체크
                 if (isOnlyMyLocation) {
-                    // 중지
                     isLocationUsing = false;
                     myLocationStop();
-                } else { // 아니면
-                    // 시작
+                } else {
                     myLocationStart();
                 }
             }
         });
+
+        findViewById(R.id.btn_callcenter).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        sendData2();
+                    }
+                },2000);
+                sendData1();
+            }
+        });
+
+        //대여 버튼
+        findViewById(R.id.ll_btn_rental).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.e(TAG, "대여 스캔 시작");
+                scanLeDevice(true);
+                //인텐트로 서비스 특성 불러오기, Service 실행
+                bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
+
+            }
+        });
+
     }
 
     //전체
@@ -241,13 +322,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         naverMap.setLocationTrackingMode(LocationTrackingMode.None);
         naverMap.setCameraPosition(new CameraPosition(initialPosition, 13));
 
+        //내 위치 찾기
         requestLocationUpdates();
-        getExternalData();
-    }
-
-    //외부데이터 가져오기
-    private void getExternalData() {
+        //마커 초기화 셋팅
         clearAllMarker();
+        //데이터 받아오기
         makeRequest();
     }
 
@@ -529,7 +608,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         return null;
     }
 
-    //정보창 setText
+    //마커 정보창 setText
     private View getInfoWindow(String text) {
         View calloutParent = LayoutInflater.from(this).inflate(R.layout.callout_overlay_view, null);
         LinearLayout calloutView = calloutParent.findViewById(R.id.callout_overlay);
@@ -537,5 +616,210 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         calloutText.setText(text);
 
         return calloutParent;
+    }
+
+    //BLE 스캔 시작
+    private void scanLeDevice(final boolean enable){
+        if (enable) {
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    mScanning = false;
+                    mBluetoothAdapter.stopLeScan(mLeScanCallback);
+                    //connectDevice(); //스레드 끝나고 연결 시도
+                }
+            }, SCAN_PERIOD);
+
+            mScanning = true;
+            mBluetoothAdapter.startLeScan(uuid,mLeScanCallback);
+        } else {
+            mScanning = false;
+            mBluetoothAdapter.stopLeScan(mLeScanCallback);
+        }
+    }
+
+    private BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
+        @Override
+        public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    addDevice(device);
+                }
+            });
+        }
+    };
+
+    public void addDevice(BluetoothDevice device) {
+        final String deviceName = device.getName();
+        final String deviceAddress = device.getAddress();
+
+        if (!mLeDevices.contains(device) && deviceName != null && deviceName.length() > 0){
+            Log.e(TAG, "deviceName : "+ deviceName);
+            Log.e(TAG, "device : "+ deviceAddress);
+
+            Log.e(TAG, "BLE 목록 : " + deviceName + "\n" + deviceAddress);
+            mLeDevices.add(device);
+        }
+    }
+
+    //BLE 디바이스 연결
+    private void connectDevice() {
+        //mLeDevices에서 하나씩 연결 시도
+        for(BluetoothDevice bluetoothDevice : mLeDevices){
+            Log.e(TAG, "찾은 디바이스 : " + bluetoothDevice.getAddress());
+            if(MAC_ADDRESS.equals(bluetoothDevice.getAddress())){
+                Log.e(TAG, "디바이스에 연결 중 : " + bluetoothDevice.getAddress());
+
+                Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
+                bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE); //인텐트로 서비스 특성 불러오기, Service 실행
+            }
+        }
+    }
+
+    private final ServiceConnection mServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder service) {
+            Log.e(TAG, "들어옴");
+            mBluetoothLeService = ((BluetoothLeService.LocalBinder) service).getService();
+            if (!mBluetoothLeService.initialize()) {
+                Log.e(TAG, "Unable to initialize Bluetooth");
+                finish();
+            }
+            mBluetoothLeService.connect(MAC_ADDRESS);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            Log.e(TAG, "들어옴");
+            mBluetoothLeService = null;
+        }
+    };
+
+    // 서비스에서 발생한 다양한 이벤트를 처리
+    private final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
+                mConnected = true;
+                Log.e(TAG, " !!! BLE 연결 성공 !!!");
+            } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
+                mConnected = false;
+                Log.e(TAG, " !!! BLE 연결 실패 !!!!");
+                unbindService(mServiceConnection);
+            } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
+                // GATT 서비스를 발견 - 사용자 인터페이스에 지원되는 모든 서비스 및 특성을 표시
+                displayGattServices(mBluetoothLeService.getSupportedGattServices());
+            } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
+                // ACTION_DATA_AVAILABLE: 기기에서 수신 된 데이터 또는 알림 작업
+                displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
+            }
+        }
+    };
+
+    // 지원 되는 GATT Services/Characteristics
+    private void displayGattServices(List<BluetoothGattService> gattServices) {
+        if (gattServices == null){
+            return;
+        }
+
+        String uuid = null;
+        String unknownServiceString ="Unknown service";
+        String unknownCharaString = "Unknown characteristic";
+        ArrayList<HashMap<String, String>> gattServiceData = new ArrayList<HashMap<String, String>>();
+        ArrayList<ArrayList<HashMap<String, String>>> gattCharacteristicData = new ArrayList<ArrayList<HashMap<String, String>>>();
+
+        // 사용 가능한 GATT 서비스
+        for (BluetoothGattService gattService : gattServices) {
+            HashMap<String, String> currentServiceData = new HashMap<String, String>();
+            uuid = gattService.getUuid().toString();
+            currentServiceData.put(LIST_NAME, GattAttributes.lookup(uuid, unknownServiceString));
+            currentServiceData.put(LIST_UUID, uuid);
+            gattServiceData.add(currentServiceData);
+
+            ArrayList<HashMap<String, String>> gattCharacteristicGroupData = new ArrayList<HashMap<String, String>>();
+            List<BluetoothGattCharacteristic> gattCharacteristics = gattService.getCharacteristics();
+            ArrayList<BluetoothGattCharacteristic> charas = new ArrayList<BluetoothGattCharacteristic>();
+
+            // 사용 가능한 Characteristics
+            for (BluetoothGattCharacteristic gattCharacteristic : gattCharacteristics) {
+                Log.e(TAG, "gattCharacteristic.getUuid() : " + gattCharacteristic.getUuid()+"");
+                Log.e(TAG, "UUID() : " + UUID.fromString(GattAttributes.CHARACTERISTIC_STRING)+"");
+
+                if(gattCharacteristic.getUuid().equals(UUID.fromString(GattAttributes.CHARACTERISTIC_STRING))) {
+                    charas.add(gattCharacteristic);
+                    HashMap<String, String> currentCharaData = new HashMap<String, String>();
+                    uuid = gattCharacteristic.getUuid().toString();
+                    currentCharaData.put(LIST_NAME, GattAttributes.lookup(uuid, unknownCharaString));
+                    currentCharaData.put(LIST_UUID, uuid);
+                    gattCharacteristicGroupData.add(currentCharaData);
+
+                    mGattCharacteristics.add(charas);
+                    gattCharacteristicData.add(gattCharacteristicGroupData);
+                }
+            }
+        }
+
+        matchCharacteristics();
+    }
+
+    private void matchCharacteristics(){
+        if (mGattCharacteristics != null) {
+            final BluetoothGattCharacteristic characteristic = mGattCharacteristics.get(0).get(0);
+            final int charaProp = characteristic.getProperties();
+            if ((charaProp | BluetoothGattCharacteristic.PROPERTY_READ) > 0) {
+                if (mNotifyCharacteristic != null) {
+                    mBluetoothLeService.setCharacteristicNotification(mNotifyCharacteristic, false);
+                    mNotifyCharacteristic = null;
+                }
+                mBluetoothLeService.readCharacteristic(characteristic);
+            }
+            if ((charaProp | BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
+                mNotifyCharacteristic = characteristic;
+                mBluetoothLeService.setCharacteristicNotification(characteristic, true);
+            }
+        }
+    }
+
+    private void sendData1(){
+        if(!mConnected){
+            Log.d(TAG, "Failed to sendData due to no connection");
+            return;
+        }
+
+        startCommunication(mGattCharacteristics.get(0).get(0), "@tpwhd");
+        Log.e(TAG, "!!! @tpwhd 입력 !!!");
+    }
+
+    private void sendData2(){
+        if(!mConnected){
+            Log.d(TAG, "Failed to sendData due to no connection");
+            return;
+        }
+
+        startCommunication(mGattCharacteristics.get(0).get(0), "&lopen");
+        Log.e(TAG, "!!! &lopen 입력 !!!");
+    }
+
+    // 주어진 GATT 특성이 선택되면 지원되는 기능을 확인합니다. 이 샘플은 '읽기'및 '알림'기능을 보여줍니다.
+    private void startCommunication(BluetoothGattCharacteristic bluetoothGattCharacteristic, String input){
+        bluetoothGattCharacteristic.setValue(input);
+        mBluetoothLeService.writeCharacteristic(bluetoothGattCharacteristic);
+    }
+
+    private void displayData(String data) {
+        if (data != null) {
+            Log.e(TAG, "BLE 통신 응답 : " + data);
+        }
+    }
+
+    private static IntentFilter makeGattUpdateIntentFilter() {
+        final IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED);
+        intentFilter.addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED);
+        intentFilter.addAction(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED);
+        intentFilter.addAction(BluetoothLeService.ACTION_DATA_AVAILABLE);
+        return intentFilter;
     }
 }
