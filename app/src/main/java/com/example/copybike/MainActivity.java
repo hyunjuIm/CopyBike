@@ -131,7 +131,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private final static UUID[] uuid = new UUID[1];
     public final static String MAC_ADDRESS = "D4:7C:44:40:09:5F";
-    private boolean mRental = false;
+    private String mRental;
 
     Intent gattServiceIntent;
 
@@ -214,7 +214,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 thread.start();
             }
         });
-
     }
 
     //전체
@@ -772,8 +771,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    Handler handler = new Handler();
-
     //명령어 제어 스레드
     class messageThread extends Thread {
         ArrayList<String> message = new ArrayList<String>();
@@ -806,16 +803,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void displayData(String data) {
         if (data != null) {
+            mRental = data;
             Log.e(TAG, "BLE 통신 응답 : " + data);
-
-            if(data.equals("L_OP_OK")){
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(instance, "대여 성공", Toast.LENGTH_LONG);
-                    }
-                });
-            }
+            Log.e(TAG, "mRental : " + mRental);
         }
     }
 
