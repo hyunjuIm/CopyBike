@@ -37,6 +37,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -128,8 +129,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private final String LIST_NAME = "NAME";
     private final String LIST_UUID = "UUID";
 
-    UUID[] uuid = new UUID[1];
+    private final static UUID[] uuid = new UUID[1];
     public final static String MAC_ADDRESS = "D4:7C:44:40:09:5F";
+    private boolean mRental = false;
 
     Intent gattServiceIntent;
 
@@ -199,20 +201,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-        findViewById(R.id.btn_callcenter).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Handler handler = new Handler();
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        sendData2();
-                    }
-                },2000);
-                sendData1();
-            }
-        });
-
         //대여 버튼
         findViewById(R.id.ll_btn_rental).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -222,6 +210,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 //인텐트로 서비스 특성 불러오기, Service 실행
                 bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
 
+                messageThread thread = new messageThread();
+                thread.start();
             }
         });
 
@@ -782,24 +772,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    private void sendData1(){
-        if(!mConnected){
-            Log.d(TAG, "Failed to sendData due to no connection");
-            return;
+    Handler handler = new Handler();
+
+    //명령어 제어 스레드
+    class messageThread extends Thread {
+        ArrayList<String> message = new ArrayList<String>();
+
+        public void run(){
+            message.add("@tpwhd");
+            message.add("&lopen");
+
+            for(int i=0; i<message.size(); i++){
+                try{
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                if(!mConnected){
+                    Log.d(TAG, "Failed to sendData due to no connection");
+                    return;
+                }
+                startCommunication(mGattCharacteristics.get(0).get(0), message.get(i));
+            }
         }
-
-        startCommunication(mGattCharacteristics.get(0).get(0), "@tpwhd");
-        Log.e(TAG, "!!! @tpwhd 입력 !!!");
-    }
-
-    private void sendData2(){
-        if(!mConnected){
-            Log.d(TAG, "Failed to sendData due to no connection");
-            return;
-        }
-
-        startCommunication(mGattCharacteristics.get(0).get(0), "&lopen");
-        Log.e(TAG, "!!! &lopen 입력 !!!");
     }
 
     // 주어진 GATT 특성이 선택되면 지원되는 기능을 확인합니다. 이 샘플은 '읽기'및 '알림'기능을 보여줍니다.
@@ -811,6 +807,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void displayData(String data) {
         if (data != null) {
             Log.e(TAG, "BLE 통신 응답 : " + data);
+
+            if(data.equals("L_OP_OK")){
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(instance, "대여 성공", Toast.LENGTH_LONG);
+                    }
+                });
+            }
         }
     }
 
