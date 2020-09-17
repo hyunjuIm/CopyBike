@@ -1,16 +1,12 @@
 package com.example.copybike;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 
-import android.Manifest;
-import android.annotation.SuppressLint;
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
@@ -21,20 +17,16 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.content.pm.PackageManager;
 import android.graphics.PointF;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.provider.Settings;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -123,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private final static UUID[] uuid = new UUID[1];
     public final static String MAC_ADDRESS = "D4:7C:44:40:09:5F";
-    private String mRental = "";
+    private boolean mRental = false;
 
     private Intent gattServiceIntent;
 
@@ -159,6 +151,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onResume() {
         super.onResume();
+
+        scanLeDevice(true);
+        //인텐트로 서비스 특성 불러오기, Service 실행
+        bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
 
         //브로드캐스트 등록
         registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
@@ -220,11 +216,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View v) {
                 Log.e(TAG, "대여 스캔 시작");
-                scanLeDevice(true);
-                //인텐트로 서비스 특성 불러오기, Service 실행
-                bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
+//                scanLeDevice(true);
+//                //인텐트로 서비스 특성 불러오기, Service 실행
+//                bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
 
-                messageThread thread = new messageThread();
+                MessageThread thread = new MessageThread();
                 thread.start();
             }
         });
@@ -730,7 +726,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 mConnected = true;
                 Log.e(TAG, " !!! BLE 연결 성공 !!!");
             } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
+                Log.e(TAG, "ACTION_GATT_DISCONNECTED - mRental : "+ String.valueOf(mRental));
+                if(mRental){
+                    AlertDialog.Builder builder = new AlertDialog.Builder(instance);
+                    builder.setTitle("대여에 성공하였습니다.");
+                    builder.setPositiveButton("확인",null);
+                    builder.show();
+                }
                 mConnected = false;
+                mRental = false;
                 Log.e(TAG, " !!! BLE 연결 실패 !!!!");
                 unbindService(mServiceConnection);
             } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
@@ -739,12 +743,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
                 // ACTION_DATA_AVAILABLE: 기기에서 수신 된 데이터 또는 알림 작업
                 displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
-                if(mRental.equals("L_OP_ALRDY")){
-                    AlertDialog.Builder builder = new AlertDialog.Builder(instance);
-                    builder.setTitle("AlertDialog Title");
-                    builder.setMessage("AlertDialog Content");
-                    builder.show();
-                }
             }
         }
     };
@@ -808,13 +806,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     //명령어 제어 스레드
-    class messageThread extends Thread {
+    class MessageThread extends Thread {
         ArrayList<String> message = new ArrayList<String>();
+        Handler handler = new Handler();
 
-        public void run(){
+        public MessageThread(){
+            scanLeDevice(true);
+            //인텐트로 서비스 특성 불러오기, Service 실행
+            bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
+
             message.add("@tpwhd");
             message.add("&lopen");
+        }
 
+        public void run(){
             for(int i=0; i<message.size(); i++){
                 try{
                     Thread.sleep(1000);
@@ -839,9 +844,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void displayData(String data) {
         if (data != null) {
-            mRental = data;
+            if("L_OP_OK\r\n".equals(data)){
+                mRental = true;
+            }
             Log.e(TAG, "BLE 통신 응답 : " + data);
-            Log.e(TAG, "mRental : " + mRental);
+            //Log.e(TAG, "mRental : " + mRental);
         }
     }
 
