@@ -77,18 +77,17 @@ import java.util.UUID;
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private static MainActivity instance;
+    final static String TAG = "HYUNJU";
 
-    ImageButton btn_station_type; //스테이션 버튼
+    //위젯
     Button btn_current_location; //내 위치 버튼
     TextView tv_last_notice; //공지 텍스트뷰
 
-    final static String TAG = "HYUNJU";
-
     //Volley
-    static RequestQueue requestQueue;
+    public static RequestQueue requestQueue;
     private String lastNoticeSeq = null; //최근 공지사항 번호
-    private ArrayList<Station> stationList = null;
-    private ArrayList<SbikeStation> sbikeStationList = null;
+    private ArrayList<Station> stationList = null; //공공대여소 리스트
+    private ArrayList<SbikeStation> sbikeStationList = null; //공유 대여소 리스트
 
     //지도
     private NaverMap mNaverMap;
@@ -107,15 +106,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private boolean isOnlyMyLocation = false;
     private boolean isZoomSetting = true;
     private boolean isLocationUsing = true;
-    private boolean isMapinitialized;
-    private boolean trackOnce;
+    private boolean trackOnce; //내 위치 셋팅
 
     //BLE 통신
     private BluetoothAdapter mBluetoothAdapter;
     private boolean mScanning;
-    private Handler mHandler;
+    private Handler mHandler = new Handler();
     private boolean mConnected = false;
-    private BluetoothGatt mBluetoothGatt;
     private BluetoothGattCharacteristic mNotifyCharacteristic;
 
     private ArrayList<BluetoothDevice> mLeDevices = new ArrayList<BluetoothDevice>();
@@ -123,17 +120,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private BluetoothLeService mBluetoothLeService;
 
-    public final static int REQUEST_ENABLE_BT = 1;
     private static final long SCAN_PERIOD = 5000;
-
-    private final String LIST_NAME = "NAME";
-    private final String LIST_UUID = "UUID";
 
     private final static UUID[] uuid = new UUID[1];
     public final static String MAC_ADDRESS = "D4:7C:44:40:09:5F";
     private String mRental;
 
-    Intent gattServiceIntent;
+    private Intent gattServiceIntent;
+
+    public MainActivity() {
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -143,32 +139,29 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         AutoPermissions.Companion.loadAllPermissions(this, 101);
 
-        btn_station_type = findViewById(R.id.btn_station_type);
         btn_current_location = findViewById(R.id.btn_current_location);
         tv_last_notice = findViewById(R.id.tv_last_notice);
-
-        mHandler = new Handler();
 
         if(requestQueue ==null){
             requestQueue = Volley.newRequestQueue(getApplicationContext());
         }
-
-        uuid[0] = UUID.fromString("F000C0E0-0451-4000-B000-000000000000");
-
-        gattServiceIntent = new Intent(this, BluetoothLeService.class);
 
         //전달하는 파라미터에 따라서 원하는 클래스형으로 형변환을 해야 한다는 것을 의미
         //파라미터로 전달되는 name값에 따라서 시스템 레벨의 서비스를 제어할 수 있는 핸들을 리턴
         final BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
 
+        uuid[0] = UUID.fromString("F000C0E0-0451-4000-B000-000000000000");
+
+        gattServiceIntent = new Intent(this, BluetoothLeService.class);
+
         initMap();
         initView();
     }
 
     @Override
-    protected void onPostResume() {
-        super.onPostResume();
+    protected void onResume() {
+        super.onResume();
 
         registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
         if (mBluetoothLeService != null) {
@@ -179,10 +172,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void initView(){
         //스테이션 분류 팝업
-        btn_station_type.setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.btn_station_type).setOnClickListener(new View.OnClickListener() {
            @Override
            public void onClick(View v) {
-                stationTypeDialog = new StationTypeDialog(instance, markerStationType, stationAllBtnListener, stationBikeBtnListener, stationSbikeBtnListener);
+                stationTypeDialog = new StationTypeDialog(instance, markerStationType,
+                        stationAllBtnListener, stationBikeBtnListener, stationSbikeBtnListener);
                 stationTypeDialog.show();
             }
         });
@@ -230,6 +224,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, PayActivity.class);
                 intent.addFlags (Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                startActivity(intent);
+            }
+        });
+
+        //로그인
+        findViewById(R.id.btn_title_right).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+//                if (prefHelper.isLogin()) {
+//                    Intent intent = new Intent(getBaseContext(), MyPageActivity.class);
+//                    startActivity(intent);
+//                } else {
+//                    Intent intent = new Intent(getBaseContext(), LoginActivity.class);
+//                    startActivity(intent);
+//                }
+
+                Intent intent = new Intent(getBaseContext(), LoginActivity.class);
                 startActivity(intent);
             }
         });
@@ -702,6 +713,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     // 서비스에서 발생한 다양한 이벤트를 처리
     private final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
+        //원하는 브로드캐스트 메세지가 도착하면 자동 호출
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
@@ -738,8 +750,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         for (BluetoothGattService gattService : gattServices) {
             HashMap<String, String> currentServiceData = new HashMap<String, String>();
             uuid = gattService.getUuid().toString();
-            currentServiceData.put(LIST_NAME, GattAttributes.lookup(uuid, unknownServiceString));
-            currentServiceData.put(LIST_UUID, uuid);
+            currentServiceData.put("NAME", GattAttributes.lookup(uuid, unknownServiceString));
+            currentServiceData.put("UUID", uuid);
             gattServiceData.add(currentServiceData);
 
             ArrayList<HashMap<String, String>> gattCharacteristicGroupData = new ArrayList<HashMap<String, String>>();
@@ -755,8 +767,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     charas.add(gattCharacteristic);
                     HashMap<String, String> currentCharaData = new HashMap<String, String>();
                     uuid = gattCharacteristic.getUuid().toString();
-                    currentCharaData.put(LIST_NAME, GattAttributes.lookup(uuid, unknownCharaString));
-                    currentCharaData.put(LIST_UUID, uuid);
+                    currentCharaData.put("NAME", GattAttributes.lookup(uuid, unknownCharaString));
+                    currentCharaData.put("UUID", uuid);
                     gattCharacteristicGroupData.add(currentCharaData);
 
                     mGattCharacteristics.add(charas);
