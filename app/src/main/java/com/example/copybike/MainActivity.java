@@ -726,7 +726,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 mConnected = true;
                 Log.e(TAG, " !!! BLE 연결 성공 !!!");
             } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
-                Log.e(TAG, "ACTION_GATT_DISCONNECTED - mRental : "+ String.valueOf(mRental));
                 if(mRental){
                     AlertDialog.Builder builder = new AlertDialog.Builder(instance);
                     builder.setTitle("대여에 성공하였습니다.");
@@ -848,7 +847,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 mRental = true;
             }
             Log.e(TAG, "BLE 통신 응답 : " + data);
-            //Log.e(TAG, "mRental : " + mRental);
         }
     }
 

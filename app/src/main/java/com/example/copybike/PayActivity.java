@@ -42,10 +42,9 @@ public class PayActivity extends AppCompatActivity {
 
     private WebView webPay;
 
-    private String authno; //카드사 승인번호
-    private String trno; // 거래번호
-    private String orderno; //주문번호
-
+    private String authno = ""; //카드사 승인번호
+    private String trno = ""; // 거래번호
+    private String orderno = ""; //주문번호
     private String validationPrice = "";
     private String validationTid = "";
 
@@ -316,7 +315,9 @@ public class PayActivity extends AppCompatActivity {
             new DownloadFileTask().execute(mUrl);
         }
 
+        //AsyncTask : 하나의 클래스에서 UI 작업을 쉽게 할 수 있게 해줌
         private class DownloadFileTask extends AsyncTask<String, Void, String> {
+            //중간 중간 진행 상태를 UI에 업데이트
             @Override
             protected String doInBackground(String... urls) {
                 URL myFileUrl = null;
@@ -352,6 +353,8 @@ public class PayActivity extends AppCompatActivity {
                 }
             }
 
+            //doInBackground( ) 작업이 끝나면 onPostExcuted( ) 로 결과 파라미터를 return
+            //return값을 통해 스레드 작업이 끝났을 때의 동작을 구현
             @Override
             protected void onPostExecute(String filename) {
                 if (!"".equals(filename)) {
@@ -379,6 +382,8 @@ public class PayActivity extends AppCompatActivity {
             try {
                 boolean retval = true;
                 if (url.startsWith("intent")) {
+                    //암시적 인텐트를 받을 수 있는 앱이 기기에 없을 경우
+                    //인텐트를 수신할 앱이 있는지 먼저 확인하려면, Intent 객체에서 resolveActivity()를 호출
                     if (getPackageManager().resolveActivity(intent, 0) == null) {
                         String packagename = intent.getPackage();
                         if (packagename != null) {
@@ -388,7 +393,7 @@ public class PayActivity extends AppCompatActivity {
                             startActivity(intent);
                             retval = true;
                         }
-                    } else {
+                    } else { //처리할 수 있는 앱이 최소한 하나는 있다는 뜻
                         intent.addCategory(Intent.CATEGORY_BROWSABLE);
                         intent.setComponent(null);
                         try {
@@ -415,18 +420,19 @@ public class PayActivity extends AppCompatActivity {
 
         private void setIntentSecurity(Intent intent) {
             intent.addCategory(Intent.CATEGORY_BROWSABLE);
-            // forbid explicit call
+            //기본값이 null인 경우 시스템은 인텐트의 다른 필드 (작업, 데이터, 유형, 범주)를 기반으로 사용할 적절한 클래스를 결정
             intent.setComponent(null);
-            // forbid Intent with selector Intent
+            //인텐트 선택기 설정
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1) {
                 intent.setSelector(null);
             }
         }
     }
 
-    // App 체크 메소드 // 존재:true, 존재하지않음:false
+    // App 체크 메소드
     public static boolean isPackageInstalled(Context ctx, String pkgName) {
         try {
+            //시스템에 설치된 애플리케이션 패키지에 대한 전체 정보를 검색
             ctx.getPackageManager().getPackageInfo(pkgName, PackageManager.GET_ACTIVITIES);
         } catch (PackageManager.NameNotFoundException e) {
             System.out.println("예외발생");
@@ -443,6 +449,8 @@ public class PayActivity extends AppCompatActivity {
         alert.show();
     }
 
+    //현제 페이지에서 일어나는 알람등을 알려 주기 위한 콜백 인터페이스
+    //Javascript 대화 상자, 즐겨 찾기 아이콘, 제목 및 진행률을 처리
     private class LguplusWebChromeClient extends WebChromeClient {
 
         public boolean onJsAlert(WebView view, String url, String message, final android.webkit.JsResult result) {
