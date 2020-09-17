@@ -12,7 +12,7 @@ public class GattAttributes {
         // Services.
         attributes.put("F000C0E0-0451-4000-B000-000000000000", "Service");
         // Characteristics.
-        attributes.put("F000C0E1-0451-4000-B000-000000000000", "Manufacturer Name String");
+        attributes.put("F000C0E1-0451-4000-B000-000000000000", "Characteristics");
     }
 
     public static String lookup(String uuid, String defaultName) {

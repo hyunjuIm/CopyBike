@@ -104,9 +104,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     //내 위치
     private LocationManager locationManager;
     private boolean isOnlyMyLocation = false;
-    private boolean isZoomSetting = true;
     private boolean isLocationUsing = true;
-    private boolean trackOnce; //내 위치 셋팅
+    private boolean trackOnce;
 
     //BLE 통신
     private BluetoothAdapter mBluetoothAdapter;
@@ -124,12 +123,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private final static UUID[] uuid = new UUID[1];
     public final static String MAC_ADDRESS = "D4:7C:44:40:09:5F";
-    private String mRental;
+    private String mRental = "";
 
     private Intent gattServiceIntent;
-
-    public MainActivity() {
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -137,6 +133,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_main);
         instance = this;
 
+        //위험 권한 자동 부여 라이브러리
         AutoPermissions.Companion.loadAllPermissions(this, 101);
 
         btn_current_location = findViewById(R.id.btn_current_location);
@@ -163,11 +160,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onResume() {
         super.onResume();
 
+        //브로드캐스트 등록
         registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
         if (mBluetoothLeService != null) {
-            final boolean result = mBluetoothLeService.connect(MAC_ADDRESS);
+            final boolean result = mBluetoothLeService.connect(MAC_ADDRESS); //연결
             Log.e(TAG, "Connect request result = " + result);
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(mGattUpdateReceiver);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unbindService(mServiceConnection);
+        mBluetoothLeService = null;
     }
 
     private void initView(){
@@ -327,18 +338,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // 카메라 초기 위치 설정
         LatLng initialPosition = new LatLng(36.502812, 127.256329);
 
-        naverMap.addOnLocationChangeListener(mLocationChangeListener);
+        naverMap.addOnLocationChangeListener(mLocationChangeListener);//사용자 위치 변경에 대한 이벤트 리스너
         naverMap.setOnMapClickListener(mMapClickListener);
-        naverMap.setLocationSource(new FusedLocationSource(this, 1));
-        naverMap.getUiSettings().setZoomControlEnabled(false);
-        naverMap.getUiSettings().setCompassEnabled(false);
-        naverMap.getUiSettings().setScaleBarEnabled(false);
-        naverMap.getUiSettings().setLogoMargin(10, 0, 0, 10);
-        naverMap.getUiSettings().setRotateGesturesEnabled(false);
+        naverMap.setLocationSource(new FusedLocationSource(this, 1)); //위치 소스 지정
+        naverMap.getUiSettings().setZoomControlEnabled(false); //줌 컨트롤 활성화 여부
+        naverMap.getUiSettings().setCompassEnabled(false);// 나침반 활성화 여부
+        naverMap.getUiSettings().setScaleBarEnabled(false); // //축척바 활성화 여부
+        naverMap.getUiSettings().setLogoMargin(10, 0, 0, 10); //네이버 로고 마진
+        naverMap.getUiSettings().setRotateGesturesEnabled(false); //회전 제스처 활성화 여부
         naverMap.setExtent(new LatLngBounds(
-                new LatLng(30.664915, 122.628502), new LatLng(39.788312, 132.893671)));
-        naverMap.setLiteModeEnabled(true);
-        naverMap.setLocationTrackingMode(LocationTrackingMode.None);
+                new LatLng(30.664915, 122.628502), new LatLng(39.788312, 132.893671))); //제한 영역
+        naverMap.setLiteModeEnabled(true); //라이트 모드 활성화
+        naverMap.setLocationTrackingMode(LocationTrackingMode.None); //위치 추적 모드
         naverMap.setCameraPosition(new CameraPosition(initialPosition, 13));
 
         //내 위치 찾기
@@ -368,14 +379,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void requestLocationUpdates() {
         if (mNaverMap != null) {
             trackOnce = true;
+            //위치 추적 활성화, 현위치 오버레이가 사용자의 위치를 따라 움직이지만 지도는 움직이지 않음
             mNaverMap.setLocationTrackingMode(LocationTrackingMode.NoFollow);
         }
     }
 
     // 내 위치찾기 종료
     private void myLocationStop() {
-
-        // 내위치 버튼 변경 (Default)
         btn_current_location.setBackgroundResource(R.drawable.btn_myposition_selector);
         isOnlyMyLocation = false;
 
@@ -394,20 +404,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+    //사용자 위치 변경에 대한 이벤트 리스너
     private final NaverMap.OnLocationChangeListener mLocationChangeListener = new NaverMap.OnLocationChangeListener() {
         @Override
         public void onLocationChange(@NonNull Location location) {
-            if (!isZoomSetting) {
-                isZoomSetting = true;
-                // 지도 zoom레벨 설정
-                LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                mNaverMap.setCameraPosition(new CameraPosition(latLng, 13));
-            }
-
             if (trackOnce) {
                 trackOnce = false;
-                mNaverMap.setCameraPosition(new CameraPosition(
-                        new LatLng(location.getLatitude(), location.getLongitude()), 17));
+                LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                mNaverMap.setCameraPosition(new CameraPosition(latLng, 17));
             }
         }
     };
@@ -416,9 +420,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         @Override
         public void onMapClick(@NonNull PointF pointF, @NonNull LatLng latLng) {
             int radius = 1;
+            //특정 화면 좌표 주변 radius 픽셀 내에 나타난 모든 오버레이 및 심벌을 가져옴
             List<Pickable> pickableList = mNaverMap.pickAll(pointF, radius);
             ArrayList<Marker> markers = new ArrayList<>();
 
+            //선택된 마커 정보
             for (Pickable pickable : pickableList) {
                 if (pickable instanceof Marker) {
                     markers.add(((Marker) pickable));
@@ -435,10 +441,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     //volley로 대여소 정보 받아오기
     public void makeRequest(){
-        // URL 설정
         Request<JSONObject> request = null;
         String requestUrl = "http://1.245.175.54:8080/v1/station/list/extra";
 
+        //지정된 URL에서 JSONObject의 응답 본문을 가져오기 위한 요청, 요청 본문의 일부로 선택적 JSONObject를 전달할 수 있음.
         request = new JsonObjectRequest(Request.Method.GET, requestUrl, null,
                 new Response.Listener<JSONObject>() {
                     @Override
@@ -472,8 +478,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Log.d(TAG, "대여소 데이터 가져오기 실패");
             }
         });
-        request.setShouldCache(false);
-        requestQueue.add(request);
+        request.setShouldCache(false); //이전 응답 결과 사용하지 않겠다 ->cache 사용 안함
+        requestQueue.add(request); //요청 큐 넣어주기
     }
 
     //마커 셋팅
@@ -667,6 +673,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     };
 
+
     public void addDevice(BluetoothDevice device) {
         final String deviceName = device.getName();
         final String deviceAddress = device.getAddress();
@@ -680,6 +687,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+    /*
     //BLE 디바이스 연결
     private void connectDevice() {
         //mLeDevices에서 하나씩 연결 시도
@@ -693,13 +701,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         }
     }
+     */
 
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder service) {
             mBluetoothLeService = ((BluetoothLeService.LocalBinder) service).getService();
             if (!mBluetoothLeService.initialize()) {
-                Log.e(TAG, "Unable to initialize Bluetooth");
+                Log.e(TAG, "블루투스를 초기화할 수 없습니다.");
                 finish();
             }
             mBluetoothLeService.connect(MAC_ADDRESS);
@@ -715,7 +724,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
         //원하는 브로드캐스트 메세지가 도착하면 자동 호출
         @Override
-        public void onReceive(Context context, Intent intent) {
+        public void onReceive(Context context, final Intent intent) {
             final String action = intent.getAction();
             if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
                 mConnected = true;
@@ -730,6 +739,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
                 // ACTION_DATA_AVAILABLE: 기기에서 수신 된 데이터 또는 알림 작업
                 displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
+                if(mRental.equals("L_OP_ALRDY")){
+                    AlertDialog.Builder builder = new AlertDialog.Builder(instance);
+                    builder.setTitle("AlertDialog Title");
+                    builder.setMessage("AlertDialog Content");
+                    builder.show();
+                }
             }
         }
     };
@@ -741,20 +756,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         String uuid = null;
-        String unknownServiceString ="Unknown service";
-        String unknownCharaString = "Unknown characteristic";
         ArrayList<HashMap<String, String>> gattServiceData = new ArrayList<HashMap<String, String>>();
-        ArrayList<ArrayList<HashMap<String, String>>> gattCharacteristicData = new ArrayList<ArrayList<HashMap<String, String>>>();
 
         // 사용 가능한 GATT 서비스
         for (BluetoothGattService gattService : gattServices) {
             HashMap<String, String> currentServiceData = new HashMap<String, String>();
             uuid = gattService.getUuid().toString();
-            currentServiceData.put("NAME", GattAttributes.lookup(uuid, unknownServiceString));
+            currentServiceData.put("NAME", GattAttributes.lookup(uuid, "Unknown service"));
             currentServiceData.put("UUID", uuid);
             gattServiceData.add(currentServiceData);
 
-            ArrayList<HashMap<String, String>> gattCharacteristicGroupData = new ArrayList<HashMap<String, String>>();
             List<BluetoothGattCharacteristic> gattCharacteristics = gattService.getCharacteristics();
             ArrayList<BluetoothGattCharacteristic> charas = new ArrayList<BluetoothGattCharacteristic>();
 
@@ -767,12 +778,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     charas.add(gattCharacteristic);
                     HashMap<String, String> currentCharaData = new HashMap<String, String>();
                     uuid = gattCharacteristic.getUuid().toString();
-                    currentCharaData.put("NAME", GattAttributes.lookup(uuid, unknownCharaString));
+                    currentCharaData.put("NAME", GattAttributes.lookup(uuid, "Unknown characteristic"));
                     currentCharaData.put("UUID", uuid);
-                    gattCharacteristicGroupData.add(currentCharaData);
 
                     mGattCharacteristics.add(charas);
-                    gattCharacteristicData.add(gattCharacteristicGroupData);
                 }
             }
         }

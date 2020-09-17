@@ -111,8 +111,9 @@ public class BluetoothLeService extends Service {
         if (UUID_CHARACTERISTIC.equals(characteristic.getUuid())) {
             final byte[] data = characteristic.getValue();
             final StringBuilder stringBuilder = new StringBuilder(data.length);
-            for(byte byteChar : data)
+            for(byte byteChar : data){
                 stringBuilder.append(String.format("%02X ", byteChar));
+            }
             intent.putExtra(EXTRA_DATA, new String(data));
         }
 
@@ -125,9 +126,9 @@ public class BluetoothLeService extends Service {
         }
     }
 
+    //콜백함수로 전달되어 service의 메소드들을 사용할 수 있게 함
     @Override
     public IBinder onBind(Intent intent) {
-        Log.e(TAG, "onBind 들어옴");
         return mBinder;
     }
 
@@ -141,10 +142,7 @@ public class BluetoothLeService extends Service {
     //바인딩된 서비스는 다른 애플리케이션 구성 요소를 도울 때까지만 유지
     private final IBinder mBinder = new LocalBinder();
 
-    /**
-     * 로컬 Bluetooth 어댑터에 대한 참조를 초기화합니다.
-     * @return 초기화에 성공하면 true를 반환합니다.
-     */
+    //로컬 Bluetooth 어댑터에 대한 참조를 초기화
     public boolean initialize() {
         if (mBluetoothManager == null) {
             mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
@@ -163,13 +161,7 @@ public class BluetoothLeService extends Service {
         return true;
     }
 
-    /*
-     * Bluetooth LE 장치에서 호스팅되는 GATT 서버에 연결합니다.
-     * @param address 대상 장치의 장치 주소입니다.
-     * @return 연결이 성공적으로 시작되면 true를 반환합니다. 연결 결과는 다음을 통해 비동기적으로 보고됩니다.
-     * {@code BluetoothGattCallback # onConnectionStateChange (android.bluetooth.BluetoothGatt, int, int)}
-     * 콜백.
-     */
+    //Bluetooth LE 장치에서 호스팅되는 GATT 서버에 연결
     public boolean connect(final String address) {
         if (mBluetoothAdapter == null || address == null) {
             Log.w(TAG, "BluetoothAdapter not initialized or unspecified address.");
@@ -192,6 +184,7 @@ public class BluetoothLeService extends Service {
             Log.w(TAG, "Device not found.  Unable to connect.");
             return false;
         }
+
         // 장치에 직접 연결하려고하므로 autoConnect 매개 변수를 false로 설정합니다.
         mBluetoothGatt = device.connectGatt(this, false, mGattCallback);
         Log.d(TAG, "Trying to create a new connection.");
@@ -237,8 +230,11 @@ public class BluetoothLeService extends Service {
             Log.w(TAG, "BluetoothAdapter not initialized");
             return;
         }
+
+        //Notification 활성화
         mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
 
+        //characteristic이 변화 될 때 onCharacteristicChanged을 작동하게 하기 위한 설정
         if (UUID_CHARACTERISTIC.equals(characteristic.getUuid())) {
             BluetoothGattDescriptor descriptor = characteristic.getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"));
             descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
@@ -246,11 +242,7 @@ public class BluetoothLeService extends Service {
         }
     }
 
-    /**
-     * 연결된 장치에서 지원되는 GATT 서비스 목록을 검색합니다.
-     * 이것은 {@code BluetoothGatt # discoverServices ()}가 성공적으로 완료된 후에만 호출됩니다.
-     * @return A {@code List} of supported services.
-     */
+    //연결된 장치에서 지원되는 GATT 서비스 목록 검색
     public List<BluetoothGattService> getSupportedGattServices() {
         if (mBluetoothGatt == null) return null;
 

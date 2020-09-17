@@ -38,13 +38,13 @@ import java.net.URL;
 
 public class PayActivity extends AppCompatActivity {
     private static PayActivity instance;
+    private String TAG = "PAY";
 
     private WebView webPay;
 
-    private String TAG = "CAN";
-
-    // 카드사 승인번호, 거래번호, 주문번호
-    private String authno, trno, orderno;
+    private String authno; //카드사 승인번호
+    private String trno; // 거래번호
+    private String orderno; //주문번호
 
     private String validationPrice = "";
     private String validationTid = "";
@@ -55,6 +55,8 @@ public class PayActivity extends AppCompatActivity {
         setContentView(R.layout.activity_pay);
         instance = this;
 
+        webPay = (WebView) findViewById(R.id.webPay);
+
         initView();
     }
 
@@ -64,6 +66,7 @@ public class PayActivity extends AppCompatActivity {
         overridePendingTransition(0, 0);
     }
 
+    //자바 스크립트 안드로이드 호출
     @SuppressLint("JavascriptInterface")
     private void initView() {
         ((TextView) findViewById(R.id.tv_title)).setText("이용권 구매");
@@ -73,8 +76,6 @@ public class PayActivity extends AppCompatActivity {
                 finish();
             }
         });
-
-        webPay = (WebView) findViewById(R.id.webPay);
 
         webPay.getSettings().setJavaScriptEnabled(true);
 
@@ -86,7 +87,10 @@ public class PayActivity extends AppCompatActivity {
             cookieManager.setAcceptThirdPartyCookies(webPay, true);
         }
 
+        //제공된 Java 객체를 WebView에 삽입
+        //파라미터 :  JavascriptInterface에 대한 상세 로직을 구현, Web에서 앱을 호출할 인터페이스 네이밍을 지정
         webPay.addJavascriptInterface(new PayActivity.PayBridge(), "PayApp");
+        //다양한 알림과 요청을 받을 WebViewClient를 설정 (=핸들러)
         webPay.setWebViewClient(new LguplusWebClient());
         webPay.setWebChromeClient(new LguplusWebChromeClient());
 
@@ -98,7 +102,6 @@ public class PayActivity extends AppCompatActivity {
         public void Result(final String result, final String authno, final String trno, final String ordno) {
             // 구매완료
             try {
-                // authno : 카드사 승인번호, trno : 거래번호, orderno : 주문번호
                 Log.d(TAG, "PayBridge, Result() : result : " + result + ", authno : " + authno + ", trno : " + trno + ", ordno : " + ordno);
 
                 if (result != null && authno != null && trno != null && ordno != null) {
@@ -122,7 +125,6 @@ public class PayActivity extends AppCompatActivity {
         public void Result(final String result, final String authno, final String trno, final String ordno, final String tid, final String amount) {
             // 구매완료
             try {
-                // authno : 카드사 승인번호, trno : 거래번호, orderno : 주문번호
                 Log.d(TAG, "PayBridge, Result() : result : " + result + ", authno : " + authno + ", trno : " + trno + ", ordno : " + ordno);
 
                 if (result != null && authno != null && trno != null && ordno != null && tid != null && amount != null) {
@@ -163,6 +165,7 @@ public class PayActivity extends AppCompatActivity {
             final String goodsName = "정기권"; // 상품명
             final String price = "10"; // 가격
 
+            //자바스크립트로 메세지 전달
             webPay.post(new Runnable() {
                 @Override
                 public void run() {
@@ -175,7 +178,9 @@ public class PayActivity extends AppCompatActivity {
         }
     }
 
+    // WebViewClient : 웹뷰에서 일어나는 요청, 상태, 에러 등 다양한 상황에서의 콜백을 조작
     private class LguplusWebClient extends WebViewClient {
+        //현재 페이지의 url을 읽어 올 수 있는 메서드
         public boolean shouldOverrideUrlLoading(final WebView view, String url) {
             if ((url.startsWith("http://") || url.startsWith("https://")) && url.endsWith(".apk")) {
                 downloadFile(url);
@@ -194,19 +199,11 @@ public class PayActivity extends AppCompatActivity {
                 view.loadUrl(url);
                 return true;
             } else if (url != null &&
-                    (url.contains("vguard")
-                            || url.contains("droidxantivirus")
-                            || url.contains("smhyundaiansimclick://")
-                            || url.contains("smshinhanansimclick://")
-                            || url.contains("smshinhancardusim://")
-                            || url.contains("smartwall://")
-                            || url.contains("appfree://")
-                            || url.contains("v3mobile")
-                            || url.endsWith(".apk")
-                            || url.contains("market://")
-                            || url.contains("ansimclick")
-                            || url.contains("market://details?id=com.shcard.smartpay")
-                            || url.contains("shinhan-sr-ansimclick://"))) {
+                    (url.contains("vguard") || url.contains("droidxantivirus") || url.contains("smhyundaiansimclick://")
+                            || url.contains("smshinhanansimclick://") || url.contains("smshinhancardusim://")
+                            || url.contains("smartwall://") || url.contains("appfree://")  || url.contains("v3mobile")
+                            || url.endsWith(".apk") || url.contains("market://") || url.contains("ansimclick")
+                            || url.contains("market://details?id=com.shcard.smartpay") || url.contains("shinhan-sr-ansimclick://"))) {
                 return callApp(url);
             } else if (url.startsWith("smartxpay-transfer://")) {
                 boolean isatallFlag = isPackageInstalled(getApplicationContext(), "kr.co.uplus.ecredit");
@@ -314,14 +311,12 @@ public class PayActivity extends AppCompatActivity {
             }
         }
 
-        // DownloadFileTask생성 및 실행
+
         private void downloadFile(String mUrl) {
             new DownloadFileTask().execute(mUrl);
         }
 
-        // AsyncTask<Params,Progress,Result>
         private class DownloadFileTask extends AsyncTask<String, Void, String> {
-
             @Override
             protected String doInBackground(String... urls) {
                 URL myFileUrl = null;
@@ -375,7 +370,6 @@ public class PayActivity extends AppCompatActivity {
         // 외부 앱 호출
         public boolean callApp(String url) {
             Intent intent = null;
-            // 인텐트 정합성 체크 : 2014 .01추가
             try {
                 intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
                 setIntentSecurity(intent);
@@ -384,9 +378,7 @@ public class PayActivity extends AppCompatActivity {
             }
             try {
                 boolean retval = true;
-                //chrome 버젼 방식 : 2014.01 추가
-                if (url.startsWith("intent")) { // chrome 버젼 방식
-                    // 앱설치 체크를 합니다.
+                if (url.startsWith("intent")) {
                     if (getPackageManager().resolveActivity(intent, 0) == null) {
                         String packagename = intent.getPackage();
                         if (packagename != null) {
@@ -407,7 +399,7 @@ public class PayActivity extends AppCompatActivity {
                             retval = false;
                         }
                     }
-                } else { // 구 방식
+                } else { //구 방식
                     Uri uri = Uri.parse(url);
                     intent = new Intent(Intent.ACTION_VIEW, uri);
                     setIntentSecurity(intent);
