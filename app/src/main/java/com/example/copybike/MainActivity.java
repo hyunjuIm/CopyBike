@@ -201,6 +201,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
+        //새로고침 버튼
+        findViewById(R.id.btn_refresh).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                clearAllMarker();
+                getMarkerItems();
+            }
+        });
+
         //대여 버튼
         findViewById(R.id.ll_btn_rental).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -220,6 +229,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, PayActivity.class);
+                intent.addFlags (Intent.FLAG_ACTIVITY_NO_ANIMATION);
                 startActivity(intent);
             }
         });
@@ -435,11 +445,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                             //대여소정보 가져오기
                             stationList = NaverMapHelper.getStationInfo(response.getJSONArray("bike_station"));
-                            Log.e(TAG, "대여소 주소 : " + stationList.get(0).getStationName());
 
                             //공유 대여소정보 가져오기
                             sbikeStationList = NaverMapHelper.getSbikeStationInfo(response.getJSONArray("sbike_station"));
-                            Log.e(TAG, "대여소 주소 : " + sbikeStationList.get(0).getStationName());
 
                             //마커출력
                             getMarkerItems();

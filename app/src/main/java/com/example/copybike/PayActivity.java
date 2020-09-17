@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Browser;
 import android.util.Log;
+import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.JsResult;
@@ -23,6 +24,7 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
@@ -56,8 +58,22 @@ public class PayActivity extends AppCompatActivity {
         initView();
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        overridePendingTransition(0, 0);
+    }
+
     @SuppressLint("JavascriptInterface")
     private void initView() {
+        ((TextView) findViewById(R.id.tv_title)).setText("이용권 구매");
+        findViewById(R.id.btn_title_back).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+
         webPay = (WebView) findViewById(R.id.webPay);
 
         webPay.getSettings().setJavaScriptEnabled(true);

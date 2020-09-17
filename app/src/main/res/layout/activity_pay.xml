@@ -10,7 +10,7 @@
     <!-- Top Menu -->
     <include
         android:id="@+id/top"
-        layout="@layout/title_main"
+        layout="@layout/title_regular"
         android:layout_width="match_parent"
         android:layout_height="0dp" />
 
