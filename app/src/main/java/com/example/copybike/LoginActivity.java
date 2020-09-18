@@ -81,6 +81,16 @@ public class LoginActivity extends AppCompatActivity {
                 requestLogin();
             }
         });
+
+        //회원 가입 버튼
+        findViewById(R.id.btn_join).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getBaseContext(), JoinGuideActivity.class);
+                startActivity(intent);
+                finish();
+            }
+        });
     }
 
     private void requestLogin() {
