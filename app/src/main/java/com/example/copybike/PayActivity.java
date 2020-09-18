@@ -54,6 +54,8 @@ public class PayActivity extends AppCompatActivity {
         setContentView(R.layout.activity_pay);
         instance = this;
 
+        ((TextView) findViewById(R.id.tv_title)).setText("이용권 구매");
+
         webPay = (WebView) findViewById(R.id.webPay);
 
         initView();
@@ -68,7 +70,6 @@ public class PayActivity extends AppCompatActivity {
     //자바 스크립트 안드로이드 호출
     @SuppressLint("JavascriptInterface")
     private void initView() {
-        ((TextView) findViewById(R.id.tv_title)).setText("이용권 구매");
         findViewById(R.id.btn_title_back).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

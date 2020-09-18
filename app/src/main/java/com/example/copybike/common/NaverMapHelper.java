@@ -1,6 +1,5 @@
 package com.example.copybike.common;
 
-import com.example.copybike.data.AirInjector;
 import com.example.copybike.data.SbikeStation;
 import com.example.copybike.data.Station;
 
@@ -73,31 +72,6 @@ public class NaverMapHelper {
             }
 
             return stationList;
-        } catch (JSONException e) {
-            return null;
-        }
-    }
-
-    public static ArrayList<AirInjector> getAirInjectorInfo(JSONArray results) {
-        try {
-            ArrayList<AirInjector> injectorList = new ArrayList<>();
-            AirInjector injector;
-
-            for (int i=0; i<results.length(); i++) {
-                JSONObject injector_data = results.getJSONObject(i);
-                injector = new AirInjector();
-
-                injector.setId(injector_data.optString("id"));
-                injector.setName(injector_data.optString("name"));
-                injector.setNo(injector_data.optString("no"));
-                injector.setX(injector_data.optDouble("x_pos"));
-                injector.setY(injector_data.optDouble("y_pos"));
-                injector.setAddr(injector_data.optString("addr"));
-
-                injectorList.add(injector);
-            }
-
-            return injectorList;
         } catch (JSONException e) {
             return null;
         }

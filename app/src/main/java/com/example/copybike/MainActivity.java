@@ -31,6 +31,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -38,6 +39,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.copybike.common.NaverMapHelper;
+import com.example.copybike.common.PreferencesHelper;
 import com.example.copybike.data.SbikeStation;
 import com.example.copybike.data.Station;
 import com.example.copybike.util.StationTypeDialog;
@@ -64,12 +66,15 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private static MainActivity instance;
     final static String TAG = "HYUNJU";
+
+    private PreferencesHelper prefHelper;
 
     //위젯
     Button btn_current_location; //내 위치 버튼
@@ -124,6 +129,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         instance = this;
+        prefHelper = PreferencesHelper.getInstance(getBaseContext());
 
         //위험 권한 자동 부여 라이브러리
         AutoPermissions.Companion.loadAllPermissions(this, 101);
@@ -152,6 +158,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onResume() {
         super.onResume();
 
+        if (prefHelper.isLogin()) {
+            findViewById(R.id.btn_title_right).setBackgroundResource(R.drawable.btn_mypage_selector);
+        } else {
+            findViewById(R.id.btn_title_right).setBackgroundResource(R.drawable.btn_login_selector);
+        }
+
         scanLeDevice(true);
         //인텐트로 서비스 특성 불러오기, Service 실행
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
@@ -168,6 +180,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onPause() {
         super.onPause();
         unregisterReceiver(mGattUpdateReceiver);
+        overridePendingTransition(0, 0);
     }
 
     @Override
@@ -216,10 +229,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View v) {
                 Log.e(TAG, "대여 스캔 시작");
-//                scanLeDevice(true);
-//                //인텐트로 서비스 특성 불러오기, Service 실행
-//                bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
-
                 MessageThread thread = new MessageThread();
                 thread.start();
             }
@@ -229,7 +238,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         findViewById(R.id.ll_btn_payment).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, PayActivity.class);
+                Intent intent = new Intent(getBaseContext(), PayActivity.class);
                 intent.addFlags (Intent.FLAG_ACTIVITY_NO_ANIMATION);
                 startActivity(intent);
             }
@@ -239,16 +248,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         findViewById(R.id.btn_title_right).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                if (prefHelper.isLogin()) {
-//                    Intent intent = new Intent(getBaseContext(), MyPageActivity.class);
-//                    startActivity(intent);
-//                } else {
-//                    Intent intent = new Intent(getBaseContext(), LoginActivity.class);
-//                    startActivity(intent);
-//                }
+                if (prefHelper.isLogin()) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(instance);
+                    builder.setTitle("이미 로그인이 된 상태입니다.\n로그아웃 하시겠습니까?");
+                    builder.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            PreferencesHelper prefHelper = PreferencesHelper.getInstance(getBaseContext());
+                            prefHelper.setInitUserInfo();
 
-                Intent intent = new Intent(getBaseContext(), LoginActivity.class);
-                startActivity(intent);
+                            dialog.cancel();
+                            Toast.makeText(instance, "로그아웃 되었습니다.", Toast.LENGTH_SHORT).show();
+
+                            // 메인화면 새로고침
+                            Intent intent = new Intent(getBaseContext(), MainActivity.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            startActivity(intent);
+                        }
+                    });
+                    builder.setNegativeButton("취소",null);
+                    builder.show();
+                } else {
+                    Intent intent = new Intent(getBaseContext(), LoginActivity.class);
+                    intent.addFlags (Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    startActivity(intent);
+                }
             }
         });
     }
@@ -352,8 +375,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         requestLocationUpdates();
         //마커 초기화 셋팅
         clearAllMarker();
-        //데이터 받아오기
-        makeRequest();
+        //대여소 데이터 받아오기
+        stationRequest();
+        //유저 데이터 받아오기
+        userRequest();
     }
 
     //내 위치 찾기
@@ -435,13 +460,62 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     };
 
+    public void userRequest(){
+        final String token = prefHelper.getAuthToken();
+
+        String requestUrl = "http://app.sejongbike.kr/v1/user/edit";
+        Map<String, String> params = new HashMap<String, String>();
+
+        //지정된 URL에서 JSONObject의 응답 본문을 가져오기 위한 요청, 요청 본문의 일부로 선택적 JSONObject를 전달할 수 있음.
+        Request<JSONObject> request = new JsonObjectRequest(Request.Method.GET, requestUrl, new JSONObject(params),
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+                            JSONObject userInfo = response.getJSONObject("results");
+                            JSONObject voucherInfo = response.getJSONObject("voucher");
+                            JSONObject sbikeInfo = response.getJSONObject("sbike");
+
+                            prefHelper.setUserInfo(
+                                    userInfo.getString("u_name"), userInfo.getString("u_id"), userInfo.getString("cell_phone"),
+                                    userInfo.getString("telecom"), userInfo.getString("rent_pass"), userInfo.getString("u_birth"),
+                                    userInfo.getString("email"), userInfo.optString("mem_group"),
+                                    voucherInfo.getString("voucher_start_date"), voucherInfo.getString("voucher_end_date"),
+                                    sbikeInfo.getString("sbike_id"), sbikeInfo.getString("sbike_ble_address"));
+
+                            if (prefHelper.isLogin()) {
+                                findViewById(R.id.btn_title_right).setBackgroundResource(R.drawable.btn_mypage_selector);
+                            } else {
+                                findViewById(R.id.btn_title_right).setBackgroundResource(R.drawable.btn_login_selector);
+                            }
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e(TAG, "유저 데이터 가져오기 실패");
+            }
+        }){
+            @Override
+            public Map getHeaders() throws AuthFailureError {
+                Map params = new HashMap();
+                params.put("auth-token", token);
+                return params;
+            }
+        };
+        request.setShouldCache(false); //이전 응답 결과 사용하지 않겠다 ->cache 사용 안함
+        requestQueue.add(request); //요청 큐 넣어주기
+    }
+
     //volley로 대여소 정보 받아오기
-    public void makeRequest(){
-        Request<JSONObject> request = null;
+    public void stationRequest(){
         String requestUrl = "http://1.245.175.54:8080/v1/station/list/extra";
 
         //지정된 URL에서 JSONObject의 응답 본문을 가져오기 위한 요청, 요청 본문의 일부로 선택적 JSONObject를 전달할 수 있음.
-        request = new JsonObjectRequest(Request.Method.GET, requestUrl, null,
+        Request<JSONObject> request = new JsonObjectRequest(Request.Method.GET, requestUrl, null,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
@@ -734,8 +808,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
                 mConnected = false;
                 mRental = false;
-                Log.e(TAG, " !!! BLE 연결 실패 !!!!");
                 unbindService(mServiceConnection);
+                mBluetoothLeService = null;
+                Log.e(TAG, " !!! BLE 연결 실패 !!!!");
             } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 // GATT 서비스를 발견 - 사용자 인터페이스에 지원되는 모든 서비스 및 특성을 표시
                 displayGattServices(mBluetoothLeService.getSupportedGattServices());
