@@ -40,7 +40,7 @@ public class PayActivity extends AppCompatActivity {
     private static PayActivity instance;
     private String TAG = "PAY";
 
-    private WebView webPay;
+    private WebView webPay = null;
 
     private String authno = ""; //카드사 승인번호
     private String trno = ""; // 거래번호
