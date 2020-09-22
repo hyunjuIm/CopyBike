@@ -5,6 +5,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 
+import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -17,9 +18,11 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.graphics.PointF;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -164,6 +167,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             findViewById(R.id.btn_title_right).setBackgroundResource(R.drawable.btn_login_selector);
         }
 
+        scanLeDevice(true);
+        //인텐트로 서비스 특성 불러오기, Service 실행
+        bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
+
         //브로드캐스트 등록
         registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
         if (mBluetoothLeService != null) {
@@ -189,8 +196,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void initView(){
         //스테이션 분류 팝업
         findViewById(R.id.btn_station_type).setOnClickListener(new View.OnClickListener() {
-           @Override
-           public void onClick(View v) {
+            @Override
+            public void onClick(View v) {
                 stationTypeDialog = new StationTypeDialog(instance, markerStationType,
                         stationAllBtnListener, stationBikeBtnListener, stationSbikeBtnListener);
                 stationTypeDialog.show();
@@ -459,7 +466,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void userRequest(){
         final String token = prefHelper.getAuthToken();
 
-        String requestUrl = "http://1.245.175.54:8080/v1/user/edit";
+        String requestUrl = "http://app.sejongbike.kr/v1/user/edit";
         Map<String, String> params = new HashMap<String, String>();
 
         //지정된 URL에서 JSONObject의 응답 본문을 가져오기 위한 요청, 요청 본문의 일부로 선택적 JSONObject를 전달할 수 있음.
@@ -720,7 +727,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }, SCAN_PERIOD);
 
             mScanning = true;
-            mBluetoothAdapter.startLeScan(mLeScanCallback);
+            mBluetoothAdapter.startLeScan(uuid,mLeScanCallback);
         } else {
             mScanning = false;
             mBluetoothAdapter.stopLeScan(mLeScanCallback);
@@ -753,6 +760,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+
     //BLE 디바이스 연결
     private void connectDevice() {
         //mLeDevices에서 하나씩 연결 시도
@@ -760,12 +768,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.e(TAG, "찾은 디바이스 : " + bluetoothDevice.getAddress());
             if(MAC_ADDRESS.equals(bluetoothDevice.getAddress())){
                 Log.e(TAG, "디바이스에 연결 중 : " + bluetoothDevice.getAddress());
-
                 Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
                 bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE); //인텐트로 서비스 특성 불러오기, Service 실행
             }
         }
     }
+
 
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
@@ -802,7 +810,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
                 mConnected = false;
                 mRental = false;
-                unbindService(mServiceConnection);
+                //unbindService(mServiceConnection);
                 mBluetoothLeService = null;
                 Log.e(TAG, " !!! BLE 연결 실패 !!!!");
             } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
