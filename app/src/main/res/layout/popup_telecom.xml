@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="200dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/ll_skt"
+        android:layout_width="match_parent"
+        android:layout_height="61dp"
+        android:orientation="vertical"
+        android:background="@drawable/btn_color_selector">
+
+        <TextView
+            android:id="@+id/tv_skt"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="SKT"
+            android:textColor="@color/contents_text"
+            android:textSize="16dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/line_color_normal"
+        android:orientation="vertical" />
+
+    <LinearLayout
+        android:id="@+id/ll_kt"
+        android:layout_width="match_parent"
+        android:layout_height="61dp"
+        android:orientation="vertical"
+        android:background="@drawable/btn_color_selector">
+
+        <TextView
+            android:id="@+id/tv_kt"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="KT"
+            android:textColor="@color/contents_text"
+            android:textSize="16dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/line_color_normal"
+        android:orientation="vertical" />
+
+    <LinearLayout
+        android:id="@+id/ll_lgt"
+        android:layout_width="match_parent"
+        android:layout_height="61dp"
+        android:orientation="vertical"
+        android:background="@drawable/btn_color_selector">
+
+        <TextView
+            android:id="@+id/tv_lgt"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="LGT"
+            android:textColor="@color/contents_text"
+            android:textSize="16dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/line_color_normal"
+        android:orientation="vertical" />
+
+    <LinearLayout
+        android:id="@+id/ll_cjh"
+        android:layout_width="match_parent"
+        android:layout_height="61dp"
+        android:orientation="vertical"
+        android:background="@drawable/btn_color_selector">
+
+        <TextView
+            android:id="@+id/tv_cjh"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="헬로모바일"
+            android:textColor="@color/contents_text"
+            android:textSize="16dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/line_color_normal"
+        android:orientation="vertical" />
+
+    <LinearLayout
+        android:id="@+id/ll_kct"
+        android:layout_width="match_parent"
+        android:layout_height="61dp"
+        android:orientation="vertical"
+        android:background="@drawable/btn_color_selector">
+
+        <TextView
+            android:id="@+id/tv_kct"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="티플러스"
+            android:textColor="@color/contents_text"
+            android:textSize="16dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:orientation="vertical">
+
+    </LinearLayout>
+
+
+</LinearLayout>

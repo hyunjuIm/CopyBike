@@ -8,7 +8,7 @@
     <LinearLayout
         android:id="@+id/ll_station_all"
         android:layout_width="match_parent"
-        android:layout_height="61dp"
+        android:layout_height="60dp"
         android:background="@drawable/btn_color_selector"
         android:orientation="vertical">
 
@@ -19,7 +19,7 @@
             android:gravity="center"
             android:text="전체"
             android:textColor="@color/contents_text"
-            android:textSize="16dp" />
+            android:textSize="16sp" />
     </LinearLayout>
 
     <LinearLayout
@@ -31,7 +31,7 @@
     <LinearLayout
         android:id="@+id/ll_station_bike"
         android:layout_width="match_parent"
-        android:layout_height="61dp"
+        android:layout_height="60dp"
         android:background="@drawable/btn_color_selector"
         android:orientation="vertical">
 
@@ -42,7 +42,7 @@
             android:gravity="center"
             android:text="어울링"
             android:textColor="@color/contents_text"
-            android:textSize="16dp" />
+            android:textSize="16sp" />
     </LinearLayout>
 
     <LinearLayout
@@ -54,7 +54,7 @@
     <LinearLayout
         android:id="@+id/ll_station_sbike"
         android:layout_width="match_parent"
-        android:layout_height="61dp"
+        android:layout_height="60dp"
         android:background="@drawable/btn_color_selector"
         android:orientation="vertical">
 
@@ -65,7 +65,7 @@
             android:gravity="center"
             android:text="뉴어울링"
             android:textColor="@color/contents_text"
-            android:textSize="16dp" />
+            android:textSize="16sp" />
     </LinearLayout>
 
 </LinearLayout>

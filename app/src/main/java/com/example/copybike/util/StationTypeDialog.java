@@ -32,16 +32,5 @@ public class StationTypeDialog extends Dialog {
         findViewById(R.id.ll_station_all).setOnClickListener(stationAllBtnListener);
         findViewById(R.id.ll_station_bike).setOnClickListener(stationBikeBtnListener);
         findViewById(R.id.ll_station_sbike).setOnClickListener(stationSbikeBtnListener);
-
-        /*
-        // 현재값 Bold 처리
-        if (selectedValue == 1) {
-            setBold((TextView) findViewById(R.id.tv_bike));
-        } else if (selectedValue == 2) {
-            setBold((TextView) findViewById(R.id.tv_sbike));
-        } else {
-            setBold((TextView) findViewById(R.id.tv_all));
-        }
-         */
     }
 }

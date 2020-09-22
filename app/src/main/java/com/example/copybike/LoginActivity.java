@@ -41,8 +41,6 @@ public class LoginActivity extends AppCompatActivity {
 
     public  AlertDialog.Builder alert;
 
-    private String requestType = "REQ_TYPE_NONE";
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -105,7 +103,6 @@ public class LoginActivity extends AppCompatActivity {
                 alert.setMessage("서버 연결에 실패했습니다. 잠시 후에 다시 시도해주세요.");
                 alert.setPositiveButton("확인", null);
             } else {
-                requestType = "REQ_TYPE_LOGIN";
                 volleyRequest();
             }
         }
@@ -114,7 +111,7 @@ public class LoginActivity extends AppCompatActivity {
     public void volleyRequest() {
         final String token = prefHelper.getAuthToken();
 
-        String requestUrl = "http:app.sejongbike.kr/v1/user/login";
+        String requestUrl = "http://1.245.175.54:8080/v1/user/login";
 
         Map<String, String> params = new HashMap<String, String>();
         params.put("u_id", inputId.getText().toString().trim());
@@ -149,33 +146,7 @@ public class LoginActivity extends AppCompatActivity {
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        try {
-                            Log.e(TAG, instance.getClass().getSimpleName() + " -> " + "error.toString() : " + error.toString());
-
-                            if (error.toString().trim().equals("com.android.volley.TimeoutError")) {
-                                Toast.makeText(instance, "POPUP_ERROR", Toast.LENGTH_LONG).show();
-                            } else if (error.toString().trim().equals("java.lang.RuntimeException: Bad URL null")) {
-                                Toast.makeText(instance, "POPUP_ERROR_BAD_URL", Toast.LENGTH_LONG).show();
-                            } else {
-                                NetworkResponse response = error.networkResponse;
-
-                                String message = new String(response.data, "UTF-8");
-                                message = trimMessage(message, "message");
-
-                                if (message == null) {
-                                    Toast.makeText(instance, "POPUP_NETWORK_SERVER", Toast.LENGTH_LONG).show();
-                                } else {
-                                    if (message.trim().equals("회원정보가 존재하지 않습니다.")) {
-                                        Toast.makeText(instance, "POPUP_ERROR_LOGIN", Toast.LENGTH_LONG).show();
-                                    } else {
-                                        Toast.makeText(instance, message, Toast.LENGTH_LONG).show();
-                                    }
-                                }
-                            }
-                        } catch (UnsupportedEncodingException e) {
-                            Log.e(TAG, instance.getClass().getSimpleName() + " -> " + "volleyErrorHandler() : Exception");
-                            Toast.makeText(instance, "POPUP_ERROR", Toast.LENGTH_LONG).show();
-                        }
+                        Log.e(TAG, instance.getClass().getSimpleName() + " -> " + "error.toString() : " + error.toString());
                     }
                 }){
             @Override
@@ -186,8 +157,6 @@ public class LoginActivity extends AppCompatActivity {
             }
         };
 
-        requestType = "REQ_TYPE_NONE";
-
         if (request != null) {
             request.setShouldCache(false);
             request.setRetryPolicy(new DefaultRetryPolicy(15000, 5, 1f));
@@ -195,19 +164,4 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    // volleyErrorHandler에서 에러문자를 뽑아내기 위해서 사용되는 함수
-    public String trimMessage(String json, String key) {
-        String trimmedString = null;
-
-        try {
-            JSONObject obj = new JSONObject(json);
-            //name존재 하는 경우 매핑 된 값을 반환하고 , 필요한 경우 강제하거나, 그러한 매핑이없는 경우 throw합니다.
-            trimmedString = obj.getString(key);
-        } catch (JSONException e) {
-            Log.e(TAG, "trimMessage()");
-            return null;
-        }
-
-        return trimmedString;
-    }
 }

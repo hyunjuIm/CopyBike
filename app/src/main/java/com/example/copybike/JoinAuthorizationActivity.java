@@ -224,6 +224,7 @@ public class JoinAuthorizationActivity extends AppCompatActivity {
         intent.putExtra("IPIN_DI", ipin_di);
         intent.putExtra("BIRTH", birth);
         intent.putExtra("GENDER", gender);
+        Log.e("본인인증에서 받아온 정보 : ", name + type + safe_key + jumin + ipin_di + birth + gender);
         startActivity(intent);
         finish();
     }

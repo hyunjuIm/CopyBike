@@ -164,10 +164,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             findViewById(R.id.btn_title_right).setBackgroundResource(R.drawable.btn_login_selector);
         }
 
-        scanLeDevice(true);
-        //인텐트로 서비스 특성 불러오기, Service 실행
-        bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
-
         //브로드캐스트 등록
         registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
         if (mBluetoothLeService != null) {
@@ -463,7 +459,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void userRequest(){
         final String token = prefHelper.getAuthToken();
 
-        String requestUrl = "http://app.sejongbike.kr/v1/user/edit";
+        String requestUrl = "http://1.245.175.54:8080/v1/user/edit";
         Map<String, String> params = new HashMap<String, String>();
 
         //지정된 URL에서 JSONObject의 응답 본문을 가져오기 위한 요청, 요청 본문의 일부로 선택적 JSONObject를 전달할 수 있음.
@@ -719,12 +715,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 public void run() {
                     mScanning = false;
                     mBluetoothAdapter.stopLeScan(mLeScanCallback);
-                    //connectDevice(); //스레드 끝나고 연결 시도
+                    connectDevice(); //스레드 끝나고 연결 시도
                 }
             }, SCAN_PERIOD);
 
             mScanning = true;
-            mBluetoothAdapter.startLeScan(uuid,mLeScanCallback);
+            mBluetoothAdapter.startLeScan(mLeScanCallback);
         } else {
             mScanning = false;
             mBluetoothAdapter.stopLeScan(mLeScanCallback);
@@ -757,7 +753,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    /*
     //BLE 디바이스 연결
     private void connectDevice() {
         //mLeDevices에서 하나씩 연결 시도
@@ -771,7 +766,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         }
     }
-     */
 
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
