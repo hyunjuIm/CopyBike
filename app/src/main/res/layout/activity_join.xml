@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/lightgray"
     tools:context=".JoinActivity">
 
     <!-- Top Menu -->
@@ -13,6 +15,678 @@
         android:layout_width="match_parent"
         android:layout_height="0dp" />
 
-    
+    <ScrollView
+        android:id="@+id/scrollView_root"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/top">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/layout_join"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layout_id"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                android:background="@drawable/layout_edge"
+                app:layout_constraintHeight_percent="0.15"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/layout_join">
+
+                <TextView
+                    android:id="@+id/tv_id"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="아이디"
+                    android:textSize="14sp"
+                    android:textColor="@color/gray1"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toTopOf="@+id/et_id"/>
+
+                <EditText
+                    android:id="@+id/et_id"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="6 ~ 20자로 영문 소문자, 숫자"
+                    android:textColor="@color/black"
+                    android:textSize="15sp"
+                    android:background="@drawable/empty"
+                    android:inputType="textUri"
+                    android:maxLength="20"
+                    android:maxLines="1"
+                    android:singleLine="true"
+                    app:layout_constraintTop_toBottomOf="@+id/tv_id"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
+                <Button
+                    android:id="@+id/btn_dupl_check"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:background="@drawable/btn_gray_selector"
+                    android:stateListAnimator="@null"
+                    android:text="중복확인"
+                    android:textSize="13dp"
+                    android:textColor="@color/black"
+                    android:textAlignment="center"
+                    app:layout_constraintWidth_percent="0.2"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layout_pass"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                app:layout_constraintHeight_percent="0.15"
+                android:background="@drawable/layout_edge"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/layout_id">
+
+                <TextView
+                    android:id="@+id/tv_pass"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="비밀번호"
+                    android:textSize="14sp"
+                    android:textColor="@color/gray1"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toTopOf="@+id/et_pass"/>
+
+                <EditText
+                    android:id="@+id/et_pass"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="6 ~ 12자 영문/숫자 조합으로 입력"
+                    android:textColor="@color/black"
+                    android:textSize="15sp"
+                    android:background="@drawable/empty"
+                    android:inputType="textPassword"
+                    android:maxLength="12"
+                    android:maxLines="1"
+                    android:singleLine="true"
+                    app:layout_constraintTop_toBottomOf="@+id/tv_pass"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/PASSWORD_CHECK_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                android:background="@drawable/layout_edge"
+                app:layout_constraintHeight_percent="0.15"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/layout_pass">
+
+                <TextView
+                    android:id="@+id/tv_pass_check"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="비밀번호 확인"
+                    android:textSize="14sp"
+                    android:textColor="@color/gray1"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toTopOf="@+id/et_pass_check"/>
+
+                <EditText
+                    android:id="@+id/et_pass_check"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="비밀번호 확인"
+                    android:textColor="@color/black"
+                    android:textSize="15sp"
+                    android:background="@drawable/empty"
+                    android:inputType="textPassword"
+                    android:maxLength="12"
+                    android:maxLines="1"
+                    android:singleLine="true"
+                    app:layout_constraintTop_toBottomOf="@+id/tv_pass_check"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/RENTAL_PASSWORD"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                app:layout_constraintHeight_percent="0.15"
+                android:background="@drawable/layout_edge"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/PASSWORD_CHECK_content">
+
+                <TextView
+                    android:id="@+id/tv_rental_pass"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="대여 비밀번호"
+                    android:textSize="14sp"
+                    android:textColor="@color/gray1"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toTopOf="@+id/et_rental_pass"/>
+
+                <EditText
+                    android:id="@+id/et_rental_pass"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="4자리 숫자 입력"
+                    android:textColor="@color/black"
+                    android:textSize="15sp"
+                    android:background="@drawable/empty"
+                    android:inputType="number"
+                    android:maxLength="4"
+                    android:maxLines="1"
+                    app:layout_constraintTop_toBottomOf="@+id/tv_rental_pass"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
+                <Button
+                    android:id="@+id/btn_rental_pass_1"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/btn_gray_selector"
+                    android:stateListAnimator="@null"
+                    android:gravity="center"
+                    android:text="1"
+                    android:textSize="13dp"
+                    android:textColor="@color/black"
+                    android:textAlignment="center"
+                    android:layout_marginRight="5dp"
+                    app:layout_constraintRight_toLeftOf="@+id/btn_rental_pass_2"
+                    app:layout_constraintWidth_percent="0.1" />
+
+                <Button
+                    android:id="@+id/btn_rental_pass_2"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/btn_gray_selector"
+                    android:stateListAnimator="@null"
+                    android:gravity="center"
+                    android:text="2"
+                    android:textSize="13dp"
+                    android:textColor="@color/black"
+                    android:textAlignment="center"
+                    android:layout_marginRight="5dp"
+                    app:layout_constraintRight_toLeftOf="@+id/btn_rental_pass_3"
+                    app:layout_constraintWidth_percent="0.1"/>
+
+                <Button
+                    android:id="@+id/btn_rental_pass_3"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/btn_gray_selector"
+                    android:gravity="center"
+                    android:stateListAnimator="@null"
+                    android:text="3"
+                    android:textAlignment="center"
+                    android:textColor="@color/black"
+                    android:textSize="13dp"
+                    android:layout_marginRight="5dp"
+                    app:layout_constraintRight_toLeftOf="@+id/btn_rental_pass_4"
+                    app:layout_constraintWidth_percent="0.1" />
+
+                <Button
+                    android:id="@+id/btn_rental_pass_4"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/btn_gray_selector"
+                    android:stateListAnimator="@null"
+                    android:gravity="center"
+                    android:text="4"
+                    android:textSize="13dp"
+                    android:textColor="@color/black"
+                    android:textAlignment="center"
+                    app:layout_constraintWidth_percent="0.1"
+                    app:layout_constraintRight_toRightOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/NAME_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                app:layout_constraintHeight_percent="0.15"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/layout_edge"
+                app:layout_constraintTop_toBottomOf="@+id/RENTAL_PASSWORD"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent">
+
+                <TextView
+                    android:id="@id/tv_id"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="이름"
+                    android:textSize="14sp"
+                    android:textColor="@color/gray1"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toTopOf="@+id/et_name"/>
+
+                <EditText
+                    android:id="@+id/et_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="이름"
+                    android:textColor="@color/gray3"
+                    android:textSize="15sp"
+                    android:enabled="false"
+                    android:background="@drawable/empty"
+                    android:inputType="textPersonName"
+                    android:maxLength="10"
+                    android:maxLines="1"
+                    android:singleLine="true"
+                    app:layout_constraintTop_toBottomOf="@+id/tv_id"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/RESI_REGI_NUMBER_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                app:layout_constraintHeight_percent="0.15"
+                android:background="@drawable/layout_edge"
+                app:layout_constraintTop_toBottomOf="@+id/NAME_content"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent">
+
+                <TextView
+                    android:id="@+id/tv_regi_front"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="개인식별번호"
+                    android:textSize="14sp"
+                    android:textColor="@color/gray1"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toTopOf="@+id/et_regi_front"/>
+
+                <EditText
+                    android:id="@+id/et_regi_front"
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/empty"
+                    android:enabled="false"
+                    android:hint="123456"
+                    android:inputType="textPassword"
+                    android:maxLength="10"
+                    android:maxLines="1"
+                    android:singleLine="true"
+                    android:textColor="@color/gray3"
+                    android:textSize="15sp"
+                    app:layout_constraintTop_toBottomOf="@+id/tv_regi_front"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
+                <TextView
+                    android:id="@+id/tv_regi_hipen"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:text="―"
+                    android:textColor="@color/gray5"
+                    android:textSize="15sp"
+                    android:layout_marginLeft="5dp"
+                    app:layout_constraintTop_toBottomOf="@+id/tv_regi_front"
+                    app:layout_constraintLeft_toRightOf="@+id/et_regi_front"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
+                <EditText
+                    android:id="@+id/et_regi_gender"
+                    android:layout_width="20dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginLeft="5dp"
+                    android:background="@drawable/empty"
+                    android:enabled="false"
+                    android:hint=""
+                    android:inputType="number"
+                    android:maxLength="1"
+                    android:text=""
+                    android:textColor="@color/gray3"
+                    android:textSize="15sp"
+                    android:windowSoftInputMode="stateAlwaysHidden"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toRightOf="@+id/tv_regi_hipen"
+                    app:layout_constraintTop_toBottomOf="@+id/tv_regi_front" />
+
+                <TextView
+                    android:id="@+id/tv_regi_star"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:text="＊＊＊"
+                    android:textColor="@color/gray3"
+                    android:textSize="15sp"
+                    android:layout_marginLeft="5dp"
+                    app:layout_constraintTop_toBottomOf="@+id/tv_regi_front"
+                    app:layout_constraintLeft_toRightOf="@+id/et_regi_gender"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
+                <EditText
+                    android:id="@+id/et_regi_end"
+                    android:layout_width="130dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:background="@drawable/empty"
+                    android:hint="주민번호 뒤 3자리"
+                    android:inputType="number|numberPassword"
+                    android:maxLength="3"
+                    android:text=""
+                    android:textColor="@color/black"
+                    android:textSize="15dp"
+                    android:windowSoftInputMode="stateAlwaysHidden"
+                    android:layout_marginLeft="5dp"
+                    app:layout_constraintTop_toBottomOf="@+id/tv_regi_front"
+                    app:layout_constraintLeft_toRightOf="@+id/tv_regi_star"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/EMAIL_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                android:background="@drawable/layout_edge"
+                app:layout_constraintTop_toBottomOf="@+id/RESI_REGI_NUMBER_content"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent">
+
+                <TextView
+                    android:id="@id/tv_email"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="이메일"
+                    android:textSize="14sp"
+                    android:textColor="@color/gray1"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toTopOf="@+id/et_email"/>
+
+                <EditText
+                    android:id="@+id/et_email"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="이메일"
+                    android:textSize="15sp"
+                    android:background="@drawable/empty"
+                    android:inputType="textWebEmailAddress"
+                    android:maxLength="30"
+                    android:maxLines="1"
+                    android:singleLine="true"
+                    android:nextFocusDown="@+id/et_phone_number1"
+                    android:textColor="@color/black"
+                    app:layout_constraintTop_toBottomOf="@+id/tv_email"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/CELL_PHONE_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                android:background="@drawable/layout_edge"
+                app:layout_constraintTop_toBottomOf="@+id/EMAIL_content"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent">
+
+                <TextView
+                    android:id="@id/tv_email"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="휴대폰번호"
+                    android:textSize="14sp"
+                    android:textColor="@color/gray1"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toTopOf="@+id/et_cell_phone_telecom"/>
+
+                <EditText
+                    android:id="@+id/et_cell_phone_telecom"
+                    android:layout_width="80dp"
+                    android:layout_height="wrap_content"
+                    android:hint="통신사"
+                    android:textSize="15sp"
+                    android:background="@drawable/empty"
+                    android:maxLines="1"
+                    android:textColor="@color/black"
+                    android:focusableInTouchMode="false"
+                    android:inputType="text"
+                    app:layout_constraintTop_toBottomOf="@+id/tv_email"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
+                <TextView
+                    android:id="@+id/tv_cell_phone_hipen"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:text="|"
+                    android:textColor="@color/gray5"
+                    android:textSize="15sp"
+                    app:layout_constraintTop_toBottomOf="@+id/tv_email"
+                    app:layout_constraintLeft_toRightOf="@+id/et_cell_phone_telecom"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
+                <EditText
+                    android:id="@+id/et_cell_phone"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintWidth_percent="0.7"
+                    android:layout_gravity="center"
+                    android:background="@drawable/empty"
+                    android:hint="휴대폰번호"
+                    android:inputType="number"
+                    android:maxLength="11"
+                    android:maxLines="1"
+                    android:singleLine="true"
+                    android:textColor="@color/black"
+                    android:textSize="15dp"
+                    android:layout_marginLeft="10dp"
+                    app:layout_constraintTop_toBottomOf="@+id/tv_email"
+                    app:layout_constraintLeft_toRightOf="@+id/tv_cell_phone_hipen"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/ADDRESS_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                android:background="@drawable/layout_edge"
+                app:layout_constraintHeight_percent="0.15"
+                app:layout_constraintTop_toBottomOf="@+id/CELL_PHONE_content"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent">
+
+                <TextView
+                    android:id="@+id/tv_address"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="주소"
+                    android:textSize="14sp"
+                    android:textColor="@color/gray1"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toTopOf="@+id/et_address1"/>
+
+                <EditText
+                    android:id="@+id/et_address1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="주소찾기 시 자동입력"
+                    android:enabled="false"
+                    android:focusableInTouchMode="false"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    android:paddingRight="5dp"
+                    android:singleLine="true"
+                    android:textColor="@color/black"
+                    android:textSize="15dp"
+                    android:background="@drawable/empty"
+                    app:layout_constraintTop_toBottomOf="@+id/tv_address"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintBottom_toTopOf="@+id/et_address2"/>
+
+                <EditText
+                    android:id="@+id/et_address2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/empty"
+                    android:hint="상세 주소"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    android:singleLine="true"
+                    android:textColor="@color/black"
+                    android:textSize="14dp"
+                    app:layout_constraintTop_toBottomOf="@+id/et_address1"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
+                <Button
+                    android:id="@+id/btn_post"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:background="@drawable/btn_gray_selector"
+                    android:stateListAnimator="@null"
+                    android:text="주소찾기"
+                    android:textSize="13dp"
+                    android:textColor="@color/black"
+                    android:textAlignment="center"
+                    app:layout_constraintWidth_percent="0.2"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/WEIGHT_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                android:background="@drawable/layout_edge"
+                app:layout_constraintTop_toBottomOf="@+id/ADDRESS_content"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent">
+
+                <TextView
+                    android:id="@id/tv_weight"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="체중(kg)"
+                    android:textSize="14sp"
+                    android:textColor="@color/gray1"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toTopOf="@+id/et_weight"/>
+
+                <EditText
+                    android:id="@+id/et_weight"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="미기재시 65kg으로 계산"
+                    android:textSize="15sp"
+                    android:inputType="number"
+                    android:maxLength="3"
+                    android:maxLines="1"
+                    android:singleLine="true"
+                    android:textColor="@color/black"
+                    android:background="@drawable/empty"
+                    app:layout_constraintTop_toBottomOf="@+id/tv_weight"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <Button
+                android:id="@+id/btn_ok"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="20dp"
+                android:layout_marginLeft="40dp"
+                android:layout_marginRight="40dp"
+                android:layout_gravity="center"
+                android:background="@drawable/btn_navy_round_selector"
+                android:gravity="center"
+                android:stateListAnimator="@null"
+                android:text="가입하기"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                app:layout_constraintTop_toBottomOf="@+id/WEIGHT_content"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </ScrollView>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
