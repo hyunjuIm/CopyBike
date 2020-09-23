@@ -207,53 +207,63 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void initSideMenu(){
-//        adapter = new ListViewAdapter();
-//
         listview = (ExpandableListView) findViewById(R.id.drawer_menulist);
 
         final ArrayList<ListViewItem> sideMenu = getDataMenu();
         ListViewAdapter adapter = new ListViewAdapter(this, sideMenu);
 
         listview.setAdapter(adapter);
+        listview.setClickable(true);
 
-        // 위에서 생성한 listview에 클릭 이벤트 핸들러 정의.
-        listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        listview.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
             @Override
-            public void onItemClick(AdapterView parent, View v, int position, long id) {
-                // get item
-
-                switch (position) {
-                    case 0 : // 메인화면
-                        drawer.closeDrawer(Gravity.LEFT) ;
-                        break ;
-                    case 1 : // 이용안내
-                        break ;
-                    case 2 : // 고객센터
-                        break ;
-                    case 3 : // 로그인/회원가입
-                        drawer.closeDrawer(Gravity.LEFT);
-
+            public boolean onGroupClick(ExpandableListView expandableListView, View view, int groupPosition, long id) {
+                switch (groupPosition){
+                    case 3 : //로그인
                         Intent intent = new Intent(getBaseContext(), LoginActivity.class);
                         intent.addFlags (Intent.FLAG_ACTIVITY_NO_ANIMATION);
                         startActivity(intent);
-                        break ;
-                    case 4 : // 설정
-                        break ;
+                        drawer.closeDrawer(Gravity.LEFT);
+                        break;
                 }
+                return false;
             }
-        }) ;
+        });
+
+        listview.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
+            @Override
+            public boolean onChildClick(ExpandableListView expandableListView, View view, int groupPosition, int childPosition, long id) {
+                switch (groupPosition){
+                    case 2 : //고객센터
+                        if(childPosition == 0){ //공지사항
+                            Intent intent = new Intent(getBaseContext(), NoticeActivity.class);
+                            intent.addFlags (Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                            startActivity(intent);
+                            drawer.closeDrawer(Gravity.LEFT);
+                            break;
+                        }
+                }
+                return false;
+            }
+        });
+
+
     }
 
     private ArrayList<ListViewItem> getDataMenu(){
-//        adapter.addItem(ContextCompat.getDrawable(this, R.drawable.sidemenu01_icon),"메인화면") ;
-//        adapter.addItem(ContextCompat.getDrawable(this, R.drawable.sidemenu02_icon),"이용안내") ;
-//        adapter.addItem(ContextCompat.getDrawable(this, R.drawable.sidemenu04_icon),"고객센터") ;
-//        adapter.addItem(ContextCompat.getDrawable(this, R.drawable.sidemenu05_icon),"로그인/회원가입") ;
-//        adapter.addItem(ContextCompat.getDrawable(this, R.drawable.sidemenu08_icon),"설정") ;
         ListViewItem item1 = new ListViewItem("메인화면", ContextCompat.getDrawable(this, R.drawable.sidemenu01_icon));
         ListViewItem item2 = new ListViewItem("이용안내", ContextCompat.getDrawable(this, R.drawable.sidemenu02_icon));
+        item2.menu.add("어울링 소개");
+        item2.menu.add("서비스 안내");
+        item2.menu.add("결제");
+        item2.menu.add("이용절차");
+        item2.menu.add("자전거 대여 및 반납");
+        item2.menu.add("자전거 안전운행 안내");
         ListViewItem item3 = new ListViewItem("고객센터", ContextCompat.getDrawable(this, R.drawable.sidemenu04_icon));
         item3.menu.add("공지사항");
+        item3.menu.add("FAQ");
+        item3.menu.add("질문과 답변");
+        item3.menu.add("콜센터 연결");
         ListViewItem item4 = new ListViewItem("로그인/회원가입", ContextCompat.getDrawable(this, R.drawable.sidemenu05_icon));
         ListViewItem item5 = new ListViewItem("설정", ContextCompat.getDrawable(this, R.drawable.sidemenu08_icon));
 
