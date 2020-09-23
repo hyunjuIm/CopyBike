@@ -156,6 +156,7 @@ public class ListViewAdapter extends BaseExpandableListAdapter {
 
         name.setText(child);
 
+        //get position name
         String positionName = (String) getGroup(groupPosition).toString();
         if (positionName == "이용안내") {
 
