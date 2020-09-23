@@ -1,11 +1,13 @@
 package com.example.copybike;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentManager;
 
-import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -18,19 +20,22 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.content.pm.PackageManager;
 import android.graphics.PointF;
 import android.location.Location;
 import android.location.LocationManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.ExpandableListView;
 import android.widget.LinearLayout;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -45,6 +50,8 @@ import com.example.copybike.common.NaverMapHelper;
 import com.example.copybike.common.PreferencesHelper;
 import com.example.copybike.data.SbikeStation;
 import com.example.copybike.data.Station;
+import com.example.copybike.ui.ListViewAdapter;
+import com.example.copybike.ui.ListViewItem;
 import com.example.copybike.util.StationTypeDialog;
 import com.naver.maps.geometry.LatLng;
 import com.naver.maps.geometry.LatLngBounds;
@@ -80,8 +87,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private PreferencesHelper prefHelper;
 
     //위젯
-    Button btn_current_location; //내 위치 버튼
-    TextView tv_last_notice; //공지 텍스트뷰
+    private DrawerLayout drawer;
+    private ExpandableListView listview;
+    private ListViewAdapter adapter;
+    private ActionBarDrawerToggle dtToggle;
+    private Button btn_current_location; //내 위치 버튼
+    private TextView tv_last_notice; //공지 텍스트뷰
 
     //Volley
     public static RequestQueue requestQueue;
@@ -137,6 +148,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //위험 권한 자동 부여 라이브러리
         AutoPermissions.Companion.loadAllPermissions(this, 101);
 
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout) ;
         btn_current_location = findViewById(R.id.btn_current_location);
         tv_last_notice = findViewById(R.id.tv_last_notice);
 
@@ -153,6 +165,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         gattServiceIntent = new Intent(this, BluetoothLeService.class);
 
+        initSideMenu();
         initMap();
         initView();
     }
@@ -193,7 +206,76 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mBluetoothLeService = null;
     }
 
+    private void initSideMenu(){
+//        adapter = new ListViewAdapter();
+//
+        listview = (ExpandableListView) findViewById(R.id.drawer_menulist);
+
+        final ArrayList<ListViewItem> sideMenu = getDataMenu();
+        ListViewAdapter adapter = new ListViewAdapter(this, sideMenu);
+
+        listview.setAdapter(adapter);
+
+        // 위에서 생성한 listview에 클릭 이벤트 핸들러 정의.
+        listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView parent, View v, int position, long id) {
+                // get item
+
+                switch (position) {
+                    case 0 : // 메인화면
+                        drawer.closeDrawer(Gravity.LEFT) ;
+                        break ;
+                    case 1 : // 이용안내
+                        break ;
+                    case 2 : // 고객센터
+                        break ;
+                    case 3 : // 로그인/회원가입
+                        drawer.closeDrawer(Gravity.LEFT);
+
+                        Intent intent = new Intent(getBaseContext(), LoginActivity.class);
+                        intent.addFlags (Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                        startActivity(intent);
+                        break ;
+                    case 4 : // 설정
+                        break ;
+                }
+            }
+        }) ;
+    }
+
+    private ArrayList<ListViewItem> getDataMenu(){
+//        adapter.addItem(ContextCompat.getDrawable(this, R.drawable.sidemenu01_icon),"메인화면") ;
+//        adapter.addItem(ContextCompat.getDrawable(this, R.drawable.sidemenu02_icon),"이용안내") ;
+//        adapter.addItem(ContextCompat.getDrawable(this, R.drawable.sidemenu04_icon),"고객센터") ;
+//        adapter.addItem(ContextCompat.getDrawable(this, R.drawable.sidemenu05_icon),"로그인/회원가입") ;
+//        adapter.addItem(ContextCompat.getDrawable(this, R.drawable.sidemenu08_icon),"설정") ;
+        ListViewItem item1 = new ListViewItem("메인화면", ContextCompat.getDrawable(this, R.drawable.sidemenu01_icon));
+        ListViewItem item2 = new ListViewItem("이용안내", ContextCompat.getDrawable(this, R.drawable.sidemenu02_icon));
+        ListViewItem item3 = new ListViewItem("고객센터", ContextCompat.getDrawable(this, R.drawable.sidemenu04_icon));
+        item3.menu.add("공지사항");
+        ListViewItem item4 = new ListViewItem("로그인/회원가입", ContextCompat.getDrawable(this, R.drawable.sidemenu05_icon));
+        ListViewItem item5 = new ListViewItem("설정", ContextCompat.getDrawable(this, R.drawable.sidemenu08_icon));
+
+        ArrayList<ListViewItem> sideMenu = new ArrayList<>();
+        sideMenu.add(item1);
+        sideMenu.add(item2);
+        sideMenu.add(item3);
+        sideMenu.add(item4);
+        sideMenu.add(item5);
+
+        return sideMenu;
+    }
+
     private void initView(){
+        //사이드 메뉴
+        findViewById(R.id.btn_title_back).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                drawer.openDrawer(findViewById(R.id.drawer));
+            }
+        });
+
         //스테이션 분류 팝업
         findViewById(R.id.btn_station_type).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -224,6 +306,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onClick(View v) {
                 clearAllMarker();
                 getMarkerItems();
+
+                Intent intent = new Intent(getBaseContext(), MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
             }
         });
 
