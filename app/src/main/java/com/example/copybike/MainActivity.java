@@ -253,7 +253,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onClick(View v) {
                 if (prefHelper.isLogin()) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(instance);
-                    builder.setTitle("이미 로그인이 된 상태입니다.\n로그아웃 하시겠습니까?");
+                    builder.setTitle("로그아웃 하시겠습니까?");
                     builder.setPositiveButton("확인", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             PreferencesHelper prefHelper = PreferencesHelper.getInstance(getBaseContext());

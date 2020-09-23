@@ -55,7 +55,6 @@ public class JoinActivity extends AppCompatActivity {
         setContentView(R.layout.activity_join);
         instance = this;
         prefHelper = PreferencesHelper.getInstance(getBaseContext());
-
         alertDialog = new AlertDialog.Builder(instance);
 
         initView();
@@ -75,6 +74,7 @@ public class JoinActivity extends AppCompatActivity {
                 finish();
             }
         });
+        alertDialog.show();
     }
 
     @Override
@@ -136,6 +136,7 @@ public class JoinActivity extends AppCompatActivity {
                 if (!UserInfoValidation.checkJoinId(((EditText)findViewById(R.id.et_id)).getText().toString())) {
                     alertDialog.setTitle("아이디를 확인해주세요");
                     alertDialog.setPositiveButton("확인", null);
+                    alertDialog.show();
                 } else {
                     idDuplCheck();
                 }
@@ -233,6 +234,7 @@ public class JoinActivity extends AppCompatActivity {
                                         dialog.cancel();
                                     }
                                 });
+                                alertDialog.show();
                             } else {
                                 Log.e(TAG, "!!!! 사용 불가 아이디 !!!!");
                                 is_dupl_chk = false;
@@ -242,6 +244,7 @@ public class JoinActivity extends AppCompatActivity {
                                         dialog.cancel();
                                     }
                                 });
+                                alertDialog.show();
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -336,12 +339,23 @@ public class JoinActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
-                            String auth_token = response.getString("auth_token");
-                            prefHelper.setAuthToken(auth_token);
+                            if (response.getString("results").trim().equals("true")) {
+                                String auth_token = response.getString("auth_token");
+                                prefHelper.setAuthToken(auth_token);
 
-                            Intent intent = new Intent(getBaseContext(), JoinCompleteActivity.class);
-                            startActivity(intent);
-                            finish();
+                                Intent intent = new Intent(getBaseContext(), JoinCompleteActivity.class);
+                                startActivity(intent);
+                                finish();
+                            } else {
+                                alertDialog.setTitle("이미 존재하는 회원입니다.");
+                                alertDialog.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        dialog.cancel();
+                                    }
+                                });
+                                alertDialog.show();
+                            }
+
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -350,14 +364,22 @@ public class JoinActivity extends AppCompatActivity {
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
+                        alertDialog.setTitle("이미 존재하는 회원입니다.");
+                        alertDialog.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        });
+                        alertDialog.show();
+
                         Log.e(TAG, "회원가입 데이터 오류");
+                        Log.e(TAG, instance.getClass().getSimpleName() + " -> " + "error.toString() : " + error.toString());
                     }
                 }
         );
 
         if (request != null) {
             request.setShouldCache(false);
-            request.setRetryPolicy(new DefaultRetryPolicy(15000, 5, 1f));
             MainActivity.requestQueue.add(request);
         }
     }

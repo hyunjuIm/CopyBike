@@ -31,7 +31,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class LoginActivity extends AppCompatActivity {
-    private LoginActivity instance;
+    private static LoginActivity instance;
     private PreferencesHelper prefHelper;
 
     private String TAG = "LOGIN";
@@ -94,9 +94,7 @@ public class LoginActivity extends AppCompatActivity {
     private void requestLogin() {
         // 입력된 ID 검증
         if (!UserInfoValidation.checkId(inputId.getText().toString().trim())) {
-            alert.setTitle("알림");
-            alert.setMessage("아이디와 비밀번호를 확인해주세요.");
-            alert.setPositiveButton("확인", null);
+            Toast.makeText(instance, "아이디와 비밀번호를 확인해주세요.", Toast.LENGTH_LONG);
         } else {
             if (!NetworkCheck.isNetworkAvailable(getBaseContext())) {
                 alert.setTitle("알림");
@@ -137,7 +135,7 @@ public class LoginActivity extends AppCompatActivity {
                             startActivity(intent);
                             finish();
                         } catch (JSONException e) {
-                            Toast.makeText(instance, "아이디나 비밀번호가 잘못되었습니다.", Toast.LENGTH_LONG);
+                            Toast.makeText(instance, "아이디나 비밀번호가 잘못되었습니다.", Toast.LENGTH_SHORT).show();
                             e.printStackTrace();
                         }
                         return;
@@ -146,6 +144,7 @@ public class LoginActivity extends AppCompatActivity {
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
+                        Toast.makeText(instance, "아이디나 비밀번호가 잘못되었습니다.", Toast.LENGTH_SHORT).show();
                         Log.e(TAG, instance.getClass().getSimpleName() + " -> " + "error.toString() : " + error.toString());
                     }
                 }){
@@ -159,7 +158,6 @@ public class LoginActivity extends AppCompatActivity {
 
         if (request != null) {
             request.setShouldCache(false);
-            request.setRetryPolicy(new DefaultRetryPolicy(15000, 5, 1f));
             MainActivity.requestQueue.add(request);
         }
     }
