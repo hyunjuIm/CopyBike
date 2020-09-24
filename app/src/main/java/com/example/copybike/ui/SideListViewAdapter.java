@@ -12,12 +12,12 @@ import com.example.copybike.R;
 
 import java.util.ArrayList;
 
-public class ListViewAdapter extends BaseExpandableListAdapter {
+public class SideListViewAdapter extends BaseExpandableListAdapter {
     private Context mContext;
-    private ArrayList<ListViewItem> menu = new ArrayList<ListViewItem>() ;
+    private ArrayList<SideListViewItem> menu = new ArrayList<SideListViewItem>() ;
     private LayoutInflater inflater; //레이아웃 XML 파일을 해당 View 객체 로 인스턴스화
 
-    public ListViewAdapter (Context mContext, ArrayList<ListViewItem> position) {
+    public SideListViewAdapter(Context mContext, ArrayList<SideListViewItem> position) {
         this.mContext = mContext;
         this.menu = position;
         //컨텍스트에서 레이아웃 리소스를 확장
@@ -65,7 +65,7 @@ public class ListViewAdapter extends BaseExpandableListAdapter {
             convertView = inflater.inflate(R.layout.side_list_item_1, parent, false);
         }
 
-        ListViewItem item = (ListViewItem) getGroup(groupPosition);
+        SideListViewItem item = (SideListViewItem) getGroup(groupPosition);
 
         ImageView iconImageView = (ImageView) convertView.findViewById(R.id.list_row_image) ;
         TextView titleTextView = (TextView) convertView.findViewById(R.id.list_row_txt) ;

@@ -4,12 +4,12 @@ import android.graphics.drawable.Drawable;
 
 import java.util.ArrayList;
 
-public class ListViewItem {
+public class SideListViewItem {
     private Drawable icon;
     private String title;
     public ArrayList<String> menu = new ArrayList<String>();
 
-    public ListViewItem(String titile, Drawable icon){
+    public SideListViewItem(String titile, Drawable icon){
         this.title = titile;
         this.icon = icon;
     }

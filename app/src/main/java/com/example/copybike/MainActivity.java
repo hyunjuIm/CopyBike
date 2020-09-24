@@ -31,12 +31,9 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ExpandableListView;
 import android.widget.LinearLayout;
-import android.widget.ListAdapter;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -51,8 +48,8 @@ import com.example.copybike.common.NaverMapHelper;
 import com.example.copybike.common.PreferencesHelper;
 import com.example.copybike.data.SbikeStation;
 import com.example.copybike.data.Station;
-import com.example.copybike.ui.ListViewAdapter;
-import com.example.copybike.ui.ListViewItem;
+import com.example.copybike.ui.SideListViewAdapter;
+import com.example.copybike.ui.SideListViewItem;
 import com.example.copybike.util.StationTypeDialog;
 import com.naver.maps.geometry.LatLng;
 import com.naver.maps.geometry.LatLngBounds;
@@ -90,7 +87,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     //위젯
     private DrawerLayout drawer;
     private ExpandableListView listview;
-    private ListViewAdapter adapter;
+    private SideListViewAdapter adapter;
     private ActionBarDrawerToggle dtToggle;
     private Button btn_current_location; //내 위치 버튼
     private TextView tv_last_notice; //공지 텍스트뷰
@@ -210,8 +207,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void initSideMenu(){
         listview = (ExpandableListView) findViewById(R.id.drawer_menulist);
 
-        final ArrayList<ListViewItem> sideMenu = getDataMenu();
-        ListViewAdapter adapter = new ListViewAdapter(this, sideMenu);
+        final ArrayList<SideListViewItem> sideMenu = getDataMenu();
+        SideListViewAdapter adapter = new SideListViewAdapter(this, sideMenu);
 
         listview.setAdapter(adapter);
         listview.setClickable(true);
@@ -270,24 +267,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-    private ArrayList<ListViewItem> getDataMenu(){
-        ListViewItem item1 = new ListViewItem("메인화면", ContextCompat.getDrawable(this, R.drawable.sidemenu01_icon));
-        ListViewItem item2 = new ListViewItem("이용안내", ContextCompat.getDrawable(this, R.drawable.sidemenu02_icon));
+    private ArrayList<SideListViewItem> getDataMenu(){
+        SideListViewItem item1 = new SideListViewItem("메인화면", ContextCompat.getDrawable(this, R.drawable.sidemenu01_icon));
+        SideListViewItem item2 = new SideListViewItem("이용안내", ContextCompat.getDrawable(this, R.drawable.sidemenu02_icon));
         item2.menu.add("어울링 소개");
         item2.menu.add("서비스 안내");
         item2.menu.add("결제");
         item2.menu.add("이용절차");
         item2.menu.add("자전거 대여 및 반납");
         item2.menu.add("자전거 안전운행 안내");
-        ListViewItem item3 = new ListViewItem("고객센터", ContextCompat.getDrawable(this, R.drawable.sidemenu04_icon));
+        SideListViewItem item3 = new SideListViewItem("고객센터", ContextCompat.getDrawable(this, R.drawable.sidemenu04_icon));
         item3.menu.add("공지사항");
         item3.menu.add("FAQ");
         item3.menu.add("질문과 답변");
         item3.menu.add("콜센터 연결");
-        ListViewItem item4 = new ListViewItem("로그인/회원가입", ContextCompat.getDrawable(this, R.drawable.sidemenu05_icon));
-        ListViewItem item5 = new ListViewItem("설정", ContextCompat.getDrawable(this, R.drawable.sidemenu08_icon));
+        SideListViewItem item4 = new SideListViewItem("로그인/회원가입", ContextCompat.getDrawable(this, R.drawable.sidemenu05_icon));
+        SideListViewItem item5 = new SideListViewItem("설정", ContextCompat.getDrawable(this, R.drawable.sidemenu08_icon));
 
-        ArrayList<ListViewItem> sideMenu = new ArrayList<>();
+        ArrayList<SideListViewItem> sideMenu = new ArrayList<>();
         sideMenu.add(item1);
         sideMenu.add(item2);
         sideMenu.add(item3);

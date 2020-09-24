@@ -106,7 +106,7 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    public void loginRequest() {
+    private void loginRequest() {
         final String token = prefHelper.getAuthToken();
 
         String requestUrl = "http://1.245.175.54:8080/v1/user/login";
