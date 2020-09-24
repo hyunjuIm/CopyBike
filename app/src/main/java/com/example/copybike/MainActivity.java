@@ -1,7 +1,6 @@
 package com.example.copybike;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -80,15 +79,14 @@ import java.util.UUID;
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private static MainActivity instance;
-    final static String TAG = "HYUNJU";
+    final static String TAG = "MainActivity";
 
     private PreferencesHelper prefHelper;
 
-    //위젯
+    //사이드메뉴
     private DrawerLayout drawer;
-    private ExpandableListView listview;
-    private SideListViewAdapter adapter;
-    private ActionBarDrawerToggle dtToggle;
+    private ExpandableListView sideMenuListview;
+
     private Button btn_current_location; //내 위치 버튼
     private TextView tv_last_notice; //공지 텍스트뷰
 
@@ -146,10 +144,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //위험 권한 자동 부여 라이브러리
         AutoPermissions.Companion.loadAllPermissions(this, 101);
 
-        drawer = (DrawerLayout) findViewById(R.id.drawer_layout) ;
-        btn_current_location = findViewById(R.id.btn_current_location);
-        tv_last_notice = findViewById(R.id.tv_last_notice);
-
         if(requestQueue ==null){
             requestQueue = Volley.newRequestQueue(getApplicationContext());
         }
@@ -205,15 +199,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void initSideMenu(){
-        listview = (ExpandableListView) findViewById(R.id.drawer_menulist);
+        sideMenuListview = (ExpandableListView) findViewById(R.id.drawer_menulist);
 
         final ArrayList<SideListViewItem> sideMenu = getDataMenu();
         SideListViewAdapter adapter = new SideListViewAdapter(this, sideMenu);
 
-        listview.setAdapter(adapter);
-        listview.setClickable(true);
+        sideMenuListview.setAdapter(adapter);
+        sideMenuListview.setClickable(true);
 
-        listview.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
+        sideMenuListview.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
             @Override
             public boolean onGroupClick(ExpandableListView expandableListView, View view, int groupPosition, long id) {
                 switch (groupPosition){
@@ -231,7 +225,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-        listview.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
+        sideMenuListview.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
             @Override
             public boolean onChildClick(ExpandableListView expandableListView, View view, int groupPosition, int childPosition, long id) {
                 switch (groupPosition){
@@ -295,6 +289,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void initView(){
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout) ;
+        btn_current_location = findViewById(R.id.btn_current_location);
+        tv_last_notice = findViewById(R.id.tv_last_notice);
+
         //사이드 메뉴
         findViewById(R.id.btn_title_back).setOnClickListener(new View.OnClickListener() {
             @Override
