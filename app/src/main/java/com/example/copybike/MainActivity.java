@@ -109,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private int markerStationType = STATION_ALL;
 
     //내 위치
-    private LocationManager locationManager;
+    private LocationManager mLocationManager;
     private boolean isOnlyMyLocation = false;
     private boolean isLocationUsing = true;
     private boolean trackOnce;
@@ -257,8 +257,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 return false;
             }
         });
-
-
     }
 
     private ArrayList<SideListViewItem> getDataMenu(){
@@ -506,7 +504,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         naverMap.setCameraPosition(new CameraPosition(initialPosition, 13));
 
         //내 위치 찾기
-        requestLocationUpdates();
+        //requestLocationUpdates();
         //마커 초기화 셋팅
         clearAllMarker();
         //대여소 데이터 받아오기
@@ -518,8 +516,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     //내 위치 찾기
     private void myLocationStart(){
         // LocationManager 생성
-        if (null == locationManager) {
-            locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (null == mLocationManager) {
+            mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         }
         // 내위치 아이콘 변경 (Selected)
         btn_current_location.setBackgroundResource(R.drawable.gps_icon_selected);
@@ -555,6 +553,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 mNaverMap.setCameraPosition(new CameraPosition(
                         new LatLng(36.502812, 127.256329), 13));
             }
+            //위치 추적 모드 종료
             mNaverMap.setLocationTrackingMode(LocationTrackingMode.None);
         }
     }

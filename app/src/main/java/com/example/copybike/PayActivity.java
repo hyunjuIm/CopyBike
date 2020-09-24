@@ -64,7 +64,6 @@ public class PayActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        overridePendingTransition(0, 0);
     }
 
     //자바 스크립트 안드로이드 호출
@@ -226,7 +225,6 @@ public class PayActivity extends AppCompatActivity {
                             intent.addCategory(Intent.CATEGORY_BROWSABLE);
                             intent.putExtra(Browser.EXTRA_APPLICATION_ID, getPackageName());
                             startActivity(intent);
-                            overridePendingTransition(0, 0);
                         }
                     }, "취소", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
@@ -281,7 +279,6 @@ public class PayActivity extends AppCompatActivity {
                     intent.addCategory(Intent.CATEGORY_BROWSABLE);
                     intent.putExtra(Browser.EXTRA_APPLICATION_ID, getPackageName());
                     startActivity(intent);
-                    overridePendingTransition(0, 0);
                     return true;
                 }
             } else if (url.startsWith("lguthepay://")) {
@@ -303,7 +300,6 @@ public class PayActivity extends AppCompatActivity {
                     intent.addCategory(Intent.CATEGORY_BROWSABLE);
                     intent.putExtra(Browser.EXTRA_APPLICATION_ID, getPackageName());
                     startActivity(intent);
-                    overridePendingTransition(0, 0);
                     return true;
                 }
             } else {
