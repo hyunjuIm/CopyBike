@@ -101,12 +101,12 @@ public class LoginActivity extends AppCompatActivity {
                 alert.setMessage("서버 연결에 실패했습니다. 잠시 후에 다시 시도해주세요.");
                 alert.setPositiveButton("확인", null);
             } else {
-                volleyRequest();
+                loginRequest();
             }
         }
     }
 
-    public void volleyRequest() {
+    public void loginRequest() {
         final String token = prefHelper.getAuthToken();
 
         String requestUrl = "http://1.245.175.54:8080/v1/user/login";

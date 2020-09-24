@@ -23,6 +23,7 @@ import android.content.ServiceConnection;
 import android.graphics.PointF;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -219,6 +220,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public boolean onGroupClick(ExpandableListView expandableListView, View view, int groupPosition, long id) {
                 switch (groupPosition){
+                    case 0: //메인화면
+                        drawer.closeDrawer(Gravity.LEFT);
+                        break;
                     case 3 : //로그인
                         Intent intent = new Intent(getBaseContext(), LoginActivity.class);
                         intent.addFlags (Intent.FLAG_ACTIVITY_NO_ANIMATION);
@@ -240,6 +244,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             intent.addFlags (Intent.FLAG_ACTIVITY_NO_ANIMATION);
                             startActivity(intent);
                             drawer.closeDrawer(Gravity.LEFT);
+                            break;
+                        }
+                        if(childPosition == 3){ //공지사항
+                            AlertDialog.Builder builder = new AlertDialog.Builder(instance);
+                            builder.setMessage("콜센터 운영시간\n평일 : 07:00 ~ 23:00\n주말/공휴일 : 09:00 ~ 18:00\n" +
+                                    "※ 운영시간 외에 발생한 장애사항은 어울링 홈페이지 질문하기 게시판에 올려주시기 바랍니다.\n" +
+                                    "콜센터로 전화 연결을 하시겠습니까?");
+                            builder.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    Intent intent = new Intent(Intent.ACTION_DIAL);
+                                    intent.setData(Uri.parse("tel:01024653895"));
+                                    startActivity(intent);
+                                }
+                            });
+                            builder.setNegativeButton("취소",null);
+                            builder.show();
                             break;
                         }
                 }
@@ -307,6 +327,26 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 } else {
                     myLocationStart();
                 }
+            }
+        });
+
+        //콜센터 연결
+        findViewById(R.id.btn_callcenter).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(instance);
+                builder.setMessage("콜센터 운영시간\n평일 : 07:00 ~ 23:00\n주말/공휴일 : 09:00 ~ 18:00\n" +
+                        "※ 운영시간 외에 발생한 장애사항은 어울링 홈페이지 질문하기 게시판에 올려주시기 바랍니다.\n" +
+                        "콜센터로 전화 연결을 하시겠습니까?");
+                builder.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        Intent intent = new Intent(Intent.ACTION_DIAL);
+                        intent.setData(Uri.parse("tel:01024653895"));
+                        startActivity(intent);
+                    }
+                });
+                builder.setNegativeButton("취소",null);
+                builder.show();
             }
         });
 
@@ -562,11 +602,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void userRequest(){
         final String token = prefHelper.getAuthToken();
 
-        String requestUrl = "http://app.sejongbike.kr/v1/user/edit";
+        String requestUrl = "http://1.245.175.54:8080/v1/user/edit";
         Map<String, String> params = new HashMap<String, String>();
 
         //지정된 URL에서 JSONObject의 응답 본문을 가져오기 위한 요청, 요청 본문의 일부로 선택적 JSONObject를 전달할 수 있음.
-        Request<JSONObject> request = new JsonObjectRequest(Request.Method.GET, requestUrl, new JSONObject(params),
+        Request<JSONObject> request = new JsonObjectRequest(Request.Method.GET, requestUrl,
+                new JSONObject(params),
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
@@ -595,6 +636,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
+                Log.e(TAG, instance.getClass().getSimpleName() + " -> " + "error.toString() : " + error.toString());
                 Log.e(TAG, "유저 데이터 가져오기 실패");
             }
         }){

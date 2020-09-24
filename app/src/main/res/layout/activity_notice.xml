@@ -6,4 +6,23 @@
     android:layout_height="match_parent"
     tools:context=".NoticeActivity">
 
+    <!-- Top Menu -->
+    <include
+        android:id="@+id/top"
+        layout="@layout/title_regular"
+        android:layout_width="match_parent"
+        android:layout_height="0dp" />
+
+    <ListView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@color/white"
+        android:dividerHeight="1dp"
+        android:divider="@color/guide_line_gray_01"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/top"/>
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>
