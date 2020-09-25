@@ -228,7 +228,6 @@ public class JoinAuthorizationActivity extends AppCompatActivity {
         //null : 명시적으로 불러오지 않는다 -> 인텐트를 처리할 어플리케이션 구성요소의 이름 또는 시스템이 자동으로 찾는다
         intent.setComponent(null);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1) {
-            //
             intent.setSelector(null);
         }
     }

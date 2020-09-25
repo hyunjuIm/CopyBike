@@ -856,7 +856,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 public void run() {
                     mScanning = false;
                     mBluetoothAdapter.stopLeScan(mLeScanCallback);
-                    connectDevice(); //스레드 끝나고 연결 시도
+                    //connectDevice(); //스레드 끝나고 연결 시도
                 }
             }, SCAN_PERIOD);
 

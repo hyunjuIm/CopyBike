@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -69,6 +70,10 @@ public class NoticeActivity extends Activity implements AbsListView.OnScrollList
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 NoticeListViewItem item = (NoticeListViewItem) parent.getItemAtPosition(position);
+
+                Intent intent = new Intent(getBaseContext(), NoticeContentActivity.class);
+                intent.putExtra("seq", item.getNumber());
+                startActivity(intent);
             }
         });
     }
@@ -129,6 +134,7 @@ public class NoticeActivity extends Activity implements AbsListView.OnScrollList
         if(progressDialog == null) {
             progressDialog = new ProgressDialog(instance);
             progressDialog.setMessage("공지사항 불러오는중...");
+            progressDialog.setCanceledOnTouchOutside(false);
         }
         progressDialog.show();
 
