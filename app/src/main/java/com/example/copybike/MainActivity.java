@@ -7,6 +7,7 @@ import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentManager;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -79,7 +80,7 @@ import java.util.UUID;
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private static MainActivity instance;
-    final static String TAG = "MainActivity";
+    final String TAG = "MainActivity";
 
     private PreferencesHelper prefHelper;
 
@@ -194,7 +195,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        //unbindService(mServiceConnection);
+        unbindService(mServiceConnection);
         mBluetoothLeService = null;
     }
 
@@ -471,6 +472,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     //맵 초기화
     private void initMap() {
+        //프래그먼트와 상호작용
         FragmentManager fm = getSupportFragmentManager();
         mMapFragment = (MapFragment) fm.findFragmentById(R.id.map_fragment);
         if (mMapFragment == null) {
@@ -999,6 +1001,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (mGattCharacteristics != null) {
             final BluetoothGattCharacteristic characteristic = mGattCharacteristics.get(0).get(0);
             final int charaProp = characteristic.getProperties();
+            // characteristic 활성 알림이 있는 경우, 취소하고 사용자 인터페이스의 데이터 필드를 업데이트 하지 않음
             if ((charaProp | BluetoothGattCharacteristic.PROPERTY_READ) > 0) {
                 if (mNotifyCharacteristic != null) {
                     mBluetoothLeService.setCharacteristicNotification(mNotifyCharacteristic, false);

@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AbsListView;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -63,6 +64,13 @@ public class NoticeActivity extends Activity implements AbsListView.OnScrollList
         noticeListView.setAdapter(adapter);
 
         noticeListRequest("http://1.245.175.54:8080/v1/customer/notice");
+
+        noticeListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                NoticeListViewItem item = (NoticeListViewItem) parent.getItemAtPosition(position);
+            }
+        });
     }
 
     @Override

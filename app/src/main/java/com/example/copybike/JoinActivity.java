@@ -37,7 +37,7 @@ public class JoinActivity extends AppCompatActivity {
 
     private static JoinActivity instance;
     private PreferencesHelper prefHelper;
-    private AlertDialog.Builder alertDialog;
+    private AlertDialog.Builder alert;
 
     private static EditText edt_postcode;
     private static EditText edt_address;
@@ -55,7 +55,8 @@ public class JoinActivity extends AppCompatActivity {
         setContentView(R.layout.activity_join);
         instance = this;
         prefHelper = PreferencesHelper.getInstance(getBaseContext());
-        alertDialog = new AlertDialog.Builder(instance);
+
+        alert = new AlertDialog.Builder(instance);
 
         initView();
     }
@@ -66,15 +67,15 @@ public class JoinActivity extends AppCompatActivity {
     }
 
     private void backActivity(){
-        alertDialog.setTitle("회원가입을 취소하시겠습니까?");
-        alertDialog.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+        alert.setTitle("회원가입을 취소하시겠습니까?");
+        alert.setPositiveButton("확인", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 Intent intent = new Intent(getBaseContext(), JoinTermsActivity.class);
                 startActivity(intent);
                 finish();
             }
         });
-        alertDialog.show();
+        alert.show();
     }
 
     @Override
@@ -134,9 +135,9 @@ public class JoinActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (!UserInfoValidation.checkJoinId(((EditText)findViewById(R.id.et_id)).getText().toString())) {
-                    alertDialog.setTitle("아이디를 확인해주세요");
-                    alertDialog.setPositiveButton("확인", null);
-                    alertDialog.show();
+                    alert.setTitle("아이디를 확인해주세요");
+                    alert.setPositiveButton("확인", null);
+                    alert.show();
                 } else {
                     idDuplCheck();
                 }
@@ -228,23 +229,23 @@ public class JoinActivity extends AppCompatActivity {
                             if (response.getString("results").trim().equals("true")) {
                                 Log.e(TAG, "!!!! 사용 가능 아이디 !!!!");
                                 is_dupl_chk = true;
-                                alertDialog.setTitle("사용가능한 아이디입니다.");
-                                alertDialog.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                                alert.setTitle("사용가능한 아이디입니다.");
+                                alert.setPositiveButton("확인", new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int id) {
                                         dialog.cancel();
                                     }
                                 });
-                                alertDialog.show();
+                                alert.show();
                             } else {
                                 Log.e(TAG, "!!!! 사용 불가 아이디 !!!!");
                                 is_dupl_chk = false;
-                                alertDialog.setTitle("해당 아이디로는 가입할 수 없습니다.");
-                                alertDialog.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                                alert.setTitle("해당 아이디로는 가입할 수 없습니다.");
+                                alert.setPositiveButton("확인", new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int id) {
                                         dialog.cancel();
                                     }
                                 });
-                                alertDialog.show();
+                                alert.show();
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -261,7 +262,6 @@ public class JoinActivity extends AppCompatActivity {
 
         if (request != null) {
             request.setShouldCache(false);
-            request.setRetryPolicy(new DefaultRetryPolicy(15000, 5, 1f));
             MainActivity.requestQueue.add(request);
         }
     }
@@ -347,13 +347,13 @@ public class JoinActivity extends AppCompatActivity {
                                 startActivity(intent);
                                 finish();
                             } else {
-                                alertDialog.setTitle("이미 존재하는 회원입니다.");
-                                alertDialog.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                                alert.setTitle("이미 존재하는 회원입니다.");
+                                alert.setPositiveButton("확인", new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int id) {
                                         dialog.cancel();
                                     }
                                 });
-                                alertDialog.show();
+                                alert.show();
                             }
 
                         } catch (JSONException e) {
@@ -364,13 +364,13 @@ public class JoinActivity extends AppCompatActivity {
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        alertDialog.setTitle("이미 존재하는 회원입니다.");
-                        alertDialog.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                        alert.setTitle("이미 존재하는 회원입니다.");
+                        alert.setPositiveButton("확인", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 dialog.cancel();
                             }
                         });
-                        alertDialog.show();
+                        alert.show();
 
                         Log.e(TAG, "회원가입 데이터 오류");
                         Log.e(TAG, instance.getClass().getSimpleName() + " -> " + "error.toString() : " + error.toString());

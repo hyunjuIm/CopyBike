@@ -127,6 +127,7 @@ public class BluetoothLeService extends Service {
     }
 
     //콜백함수로 전달되어 service의 메소드들을 사용할 수 있게 함
+    // Service 객체와 (화면단 Activity 사이에서) 통신(데이터를 주고받을) 때 사용하는 메서드
     @Override
     public IBinder onBind(Intent intent) {
         return mBinder;
@@ -134,7 +135,6 @@ public class BluetoothLeService extends Service {
 
     @Override
     public boolean onUnbind(Intent intent) {
-        disconnect();
         close();
         return super.onUnbind(intent);
     }

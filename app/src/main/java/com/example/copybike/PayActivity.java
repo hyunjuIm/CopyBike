@@ -38,7 +38,7 @@ import java.net.URL;
 
 public class PayActivity extends AppCompatActivity {
     private static PayActivity instance;
-    private String TAG = "PAY";
+    private String TAG = "PayActivity";
 
     private WebView webPay = null;
 
@@ -54,10 +54,6 @@ public class PayActivity extends AppCompatActivity {
         setContentView(R.layout.activity_pay);
         instance = this;
 
-        ((TextView) findViewById(R.id.tv_title)).setText("이용권 구매");
-
-        webPay = (WebView) findViewById(R.id.webPay);
-
         initView();
     }
 
@@ -69,6 +65,8 @@ public class PayActivity extends AppCompatActivity {
     //자바 스크립트 안드로이드 호출
     @SuppressLint("JavascriptInterface")
     private void initView() {
+        ((TextView) findViewById(R.id.tv_title)).setText("이용권 구매");
+
         findViewById(R.id.btn_title_back).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -76,10 +74,14 @@ public class PayActivity extends AppCompatActivity {
             }
         });
 
+        webPay = (WebView) findViewById(R.id.webPay);
+
         webPay.getSettings().setJavaScriptEnabled(true);
 
         // android 5.0부터 앱에서 API수준21이상을 타겟킹하는 경우 아래추가
+        //시스템은 기본적으로 혼합 콘텐츠와 타사 쿠키를 차단
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            //혼합 콘텐츠와 타사 쿠키를 허용
             webPay.getSettings().setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
             CookieManager cookieManager = CookieManager.getInstance();
             cookieManager.setAcceptCookie(true);

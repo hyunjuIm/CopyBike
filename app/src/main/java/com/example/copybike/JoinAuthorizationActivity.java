@@ -53,6 +53,7 @@ public class JoinAuthorizationActivity extends AppCompatActivity {
         finish();
     }
 
+    //자바스크립트에서 안드로이드 호출
     @SuppressLint("JavascriptInterface")
     private void initView() {
         ((TextView)findViewById(R.id.tv_title)).setText("본인인증");
@@ -65,10 +66,22 @@ public class JoinAuthorizationActivity extends AppCompatActivity {
         });
 
         webAuth = (WebView) findViewById(R.id.webAuth);
-        webAuth.getSettings().setJavaScriptEnabled(true);
+
+        // android 5.0부터 앱에서 API수준21이상을 타겟킹하는 경우 아래추가
+        //시스템은 기본적으로 혼합 콘텐츠와 타사 쿠키를 차단
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            //혼합 콘텐츠와 타사 쿠키를 허용
+            webAuth.getSettings().setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+            CookieManager cookieManager = CookieManager.getInstance();
+            cookieManager.setAcceptCookie(true);
+            cookieManager.setAcceptThirdPartyCookies(webAuth, true);
+        }
+
+        webAuth.getSettings().setJavaScriptEnabled(true); //자바 스크립트로 이루어진 기능 사용
         webAuth.addJavascriptInterface(new AuthBridge(), "AuthApp");
         webAuth.setWebChromeClient(new WebChromeClient());
         webAuth.setWebViewClient(new WebViewClient(){
+            //로딩이 시작될 때
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 super.onPageStarted(view, url, favicon);
@@ -106,9 +119,12 @@ public class JoinAuthorizationActivity extends AppCompatActivity {
                 }
             }
 
+            // 새로운 URL이 webview에 로드되려 할 경우 컨트롤을 대신할 기회를 줌
+            // return이 true면 새로운 url을 호출하기 위해 외부 브라우저를 더이상 찾지 않게 됨
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                if ((url.startsWith("http://") || url.startsWith("https://")) && (url.contains("market.android.com") || url.contains("m.ahnlab.com/kr/site/download"))) {
+                if ((url.startsWith("http://") || url.startsWith("https://")) && (url.contains("market.android.com")
+                        || url.contains("m.ahnlab.com/kr/site/download"))) {
                     Uri uri = Uri.parse(url);
                     Intent intent = new Intent(Intent.ACTION_VIEW, uri);
                     setIntentSecurity(intent);
@@ -120,12 +136,9 @@ public class JoinAuthorizationActivity extends AppCompatActivity {
                         return false;
                     }
                 } else if (url != null && url != "ansimclick.hyundiacard.com"
-                        && (url.contains("com.sktelecom.tauth")
-                        || url.contains("com.kt.ktauth")
-                        || url.contains("com.lguplus.smartotp")
-                        || url.contains("samsungpass")
-                        || url.contains("market://")
-                        || url.contains("tel:"))) {
+                        && (url.contains("com.sktelecom.tauth") || url.contains("com.kt.ktauth")
+                        || url.contains("com.lguplus.smartotp") || url.contains("samsungpass")
+                        || url.contains("market://") || url.contains("tel:"))) {
                     try {
 
                         Intent intent = null;
@@ -141,6 +154,7 @@ public class JoinAuthorizationActivity extends AppCompatActivity {
                         //chrome 버젼 방식 : 2014.01 추가
                         if (url.startsWith("intent")) { // chrome 버젼 방식
                             // 앱설치 체크를 합니다.
+                            //설정에 맞는 액티비티를 찾고, 이 중에 어떤 액티비티를 실행할지 결정해줍니다.
                             if (getPackageManager().resolveActivity(intent, 0) == null) {
                                 String packagename = intent.getPackage();
                                 if (packagename != null) {
@@ -207,10 +221,14 @@ public class JoinAuthorizationActivity extends AppCompatActivity {
         webAuth.loadUrl("http://www.sejongbike.kr/appserver/auth/NiceLoading.jsp?");
     }
 
+    //스키마를 통해 외부 앱을 킬때는 Browasable로 등록된 앱들만 킬 수 있도록하여, 사용자의 보안을 향상시킨다
     private void setIntentSecurity(Intent intent) {
+        //BROWSABLE 카테고리에 없는 액티비티 실행 X
         intent.addCategory(Intent.CATEGORY_BROWSABLE);
+        //null : 명시적으로 불러오지 않는다 -> 인텐트를 처리할 어플리케이션 구성요소의 이름 또는 시스템이 자동으로 찾는다
         intent.setComponent(null);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1) {
+            //
             intent.setSelector(null);
         }
     }
@@ -229,8 +247,10 @@ public class JoinAuthorizationActivity extends AppCompatActivity {
         finish();
     }
 
+    //PackageManager : 현재 디바이스에 설치되어 있는 애플리케이션 패키지와 정보를 검색하는 클래스
     private boolean isPackageInstalled(String packagename, PackageManager packageManager) {
         try {
+            //시스템에 설치된 애플리케이션 패키지에 대한 전체 정보 검색
             packageManager.getPackageInfo(packagename, 0);
             return true;
         } catch (PackageManager.NameNotFoundException e) {

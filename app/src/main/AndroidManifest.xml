@@ -20,7 +20,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.NoActionBar"
         android:usesCleartextTraffic="true">
-        <activity android:name=".NoticeActivity"></activity>
+        <activity android:name=".NoticeContentActivity"></activity>
+        <activity android:name=".NoticeActivity" />
         <activity android:name=".JoinCompleteActivity" />
         <activity android:name=".PostActivity" />
         <activity android:name=".JoinActivity" />

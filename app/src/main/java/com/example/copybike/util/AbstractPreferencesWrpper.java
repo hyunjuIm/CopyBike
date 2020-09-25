@@ -6,6 +6,9 @@ import android.util.Log;
 public class AbstractPreferencesWrpper {
     private String TAG = "AbstractPreferencesWrpper";
 
+    //기본 설정 데이터에 액세스하고 수정하기 위한 인터페이스
+    //보통 초기 설정값이나 자동로그인 여부 등 간단한 값을 저장하기 위해 사용
+    //어플리케이션에 파일 형태로 데이터를 저장
     private SharedPreferences mSharedPreferences;
 
     public void setPreference(SharedPreferences shared_pref) {

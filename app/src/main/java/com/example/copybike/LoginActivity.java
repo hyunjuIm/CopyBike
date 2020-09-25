@@ -34,7 +34,7 @@ public class LoginActivity extends AppCompatActivity {
     private static LoginActivity instance;
     private PreferencesHelper prefHelper;
 
-    private String TAG = "LOGIN";
+    private String TAG = "LoginActivity";
 
     private EditText inputId;
     private EditText inputPassword;
@@ -147,6 +147,7 @@ public class LoginActivity extends AppCompatActivity {
                         Log.e(TAG, instance.getClass().getSimpleName() + " -> " + "error.toString() : " + error.toString());
                     }
                 }){
+            // HTTP 헤더를 반환
             @Override
             public Map getHeaders() throws AuthFailureError {
                 Map params = new HashMap();

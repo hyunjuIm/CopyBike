@@ -10,13 +10,10 @@ import android.widget.TextView;
 
 public class TermsDetailActivity extends AppCompatActivity {
 
-    private TermsDetailActivity instance;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_terms_detail);
-        instance = this;
 
         initView();
     }
@@ -28,18 +25,9 @@ public class TermsDetailActivity extends AppCompatActivity {
     }
 
     private void backActivity() {
-        try {
-            // 돌아가야할 액티비티의 Class를 얻음
-            String getActivity = getIntent().getStringExtra("ACTIVITY").trim().split("\\$")[0];
-            Class c = Class.forName(getActivity);
-
-            // 액티비티 실행 및 약관화면 종료
-            Intent intent = new Intent(getBaseContext(), c);
-            startActivity(intent);
-            finish();
-        } catch (ClassNotFoundException e) {
-            finish();
-        }
+        Intent intent = new Intent(getBaseContext(), JoinTermsActivity.class);
+        startActivity(intent);
+        finish();
     }
 
     private void initView() {
